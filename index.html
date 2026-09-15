@@ -1,0 +1,692 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Мониторинг оперативного плана Института цифровых наук и искусственного интеллекта: 22 показателя, 6 кафедр, 1 полугодие 2026 года.">
+<title>Оперплан ИЦН и ИИ по кафедрам</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ink:#141821; --ink2:#434b5c; --muted:#6e7787;
+  --paper:#f2f5f8; --surface:#ffffff; --surface2:#fafbfd;
+  --line:#dde2e9; --line-strong:#c4ccd8;
+  --accent:#1f45c8; --accent-soft:#e6ebfb;
+  --ok:#0e7a5a; --ok-soft:#e2f3ec;
+  --warn:#a8690b; --warn-soft:#fbf0dc;
+  --risk:#b3352c; --risk-soft:#fbe6e4;
+  --nd:#8a93a3; --nd-soft:#eceff4;
+  --shadow:0 1px 2px rgba(20,24,33,.06), 0 8px 24px -16px rgba(20,24,33,.35);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ink:#e8ecf3; --ink2:#a9b2c2; --muted:#7c8698;
+    --paper:#0e1117; --surface:#161b24; --surface2:#1b212c;
+    --line:#262d39; --line-strong:#39424f;
+    --accent:#8ba3ff; --accent-soft:#1b2440;
+    --ok:#46c79a; --ok-soft:#10261f;
+    --warn:#e0a83e; --warn-soft:#2a2113;
+    --risk:#f28077; --risk-soft:#2d1817;
+    --nd:#7c8698; --nd-soft:#1e242e;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px -18px rgba(0,0,0,.9);
+  }
+}
+:root[data-theme="dark"]{
+  --ink:#e8ecf3; --ink2:#a9b2c2; --muted:#7c8698;
+  --paper:#0e1117; --surface:#161b24; --surface2:#1b212c;
+  --line:#262d39; --line-strong:#39424f;
+  --accent:#8ba3ff; --accent-soft:#1b2440;
+  --ok:#46c79a; --ok-soft:#10261f;
+  --warn:#e0a83e; --warn-soft:#2a2113;
+  --risk:#f28077; --risk-soft:#2d1817;
+  --nd:#7c8698; --nd-soft:#1e242e;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px -18px rgba(0,0,0,.9);
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,sans-serif;
+  font-size:14px; line-height:1.5; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1360px; margin:0 auto; padding-inline:18px; padding-block:0 56px}
+h1,h2,h3{font-family:"Golos Text","IBM Plex Sans",sans-serif; margin:0; text-wrap:balance}
+.num{font-family:"IBM Plex Mono",ui-monospace,monospace; font-variant-numeric:tabular-nums}
+
+/* ---------- header ---------- */
+header.top{
+  position:sticky; top:env(safe-area-inset-top,0px); z-index:30;
+  background:color-mix(in srgb, var(--paper) 88%, transparent);
+  backdrop-filter:blur(10px); border-bottom:1px solid var(--line);
+}
+.top-inner{max-width:1360px; margin:0 auto; padding:14px 18px; display:flex; gap:18px; align-items:flex-end; flex-wrap:wrap}
+.eyebrow{font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); font-weight:600}
+h1{font-size:21px; font-weight:700; letter-spacing:-.01em; line-height:1.2}
+.subtitle{color:var(--ink2); font-size:13px; margin-top:2px}
+.top-right{margin-left:auto; display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+
+.tabs{display:flex; gap:2px; background:var(--surface); border:1px solid var(--line); border-radius:9px; padding:3px}
+.tab{
+  appearance:none; border:0; background:transparent; color:var(--ink2); cursor:pointer;
+  font:inherit; font-weight:600; font-size:13px; padding:7px 13px; border-radius:6px; white-space:nowrap;
+}
+.tab[aria-selected="true"]{background:var(--accent); color:#fff}
+.tab:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+
+.io{display:flex; gap:6px}
+.btn{appearance:none; font:inherit; font-size:12.5px; font-weight:600; cursor:pointer;
+  background:var(--surface); color:var(--ink2); border:1px solid var(--line-strong);
+  border-radius:8px; padding:7px 12px; line-height:1.1; white-space:nowrap}
+.btn:hover{border-color:var(--accent); color:var(--accent)}
+.btn:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+.savebadge{font-size:12px; color:var(--muted); display:flex; align-items:center; gap:6px}
+.dot{width:7px; height:7px; border-radius:50%; background:var(--ok)}
+.dot.off{background:var(--warn)}
+
+/* ---------- summary strip ---------- */
+.strip{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:1px; background:var(--line);
+  border:1px solid var(--line); border-radius:12px; overflow:hidden; margin-top:20px}
+.cell{background:var(--surface); padding:14px 16px}
+.cell .k{font-size:11px; letter-spacing:.09em; text-transform:uppercase; color:var(--muted); font-weight:600}
+.cell .v{font-family:"Golos Text",sans-serif; font-size:27px; font-weight:700; line-height:1.15; margin-top:5px; font-variant-numeric:tabular-nums}
+.cell .s{font-size:12px; color:var(--muted); margin-top:2px}
+.v.ok{color:var(--ok)} .v.warn{color:var(--warn)} .v.risk{color:var(--risk)} .v.nd{color:var(--nd)}
+
+section{margin-top:30px}
+.sec-head{display:flex; align-items:baseline; gap:12px; margin-bottom:12px; flex-wrap:wrap}
+h2{font-size:15px; font-weight:700; letter-spacing:.01em}
+.sec-note{font-size:12.5px; color:var(--muted)}
+
+.panel{background:var(--surface); border:1px solid var(--line); border-radius:12px; box-shadow:var(--shadow)}
+
+/* ---------- block bars ---------- */
+.blocks{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:14px}
+.block{padding:15px 16px; background:var(--surface); border:1px solid var(--line); border-radius:11px}
+.block-top{display:flex; justify-content:space-between; align-items:baseline; gap:10px}
+.block-name{font-family:"Golos Text",sans-serif; font-weight:700; font-size:13.5px}
+.block-pct{font-family:"IBM Plex Mono",monospace; font-size:15px; font-weight:600; font-variant-numeric:tabular-nums}
+.bar{height:7px; border-radius:4px; background:var(--nd-soft); margin-top:10px; overflow:hidden; display:flex}
+.bar i{display:block; height:100%}
+.bar i.ok{background:var(--ok)} .bar i.warn{background:var(--warn)} .bar i.risk{background:var(--risk)}
+.legend{display:flex; gap:12px; font-size:11.5px; color:var(--muted); margin-top:9px; flex-wrap:wrap}
+.legend span{display:flex; align-items:center; gap:5px}
+.sw{width:9px; height:9px; border-radius:2px; display:inline-block}
+.sw.ok{background:var(--ok)} .sw.warn{background:var(--warn)} .sw.risk{background:var(--risk)} .sw.nd{background:var(--nd)}
+
+/* ---------- tables ---------- */
+.scroll{overflow-x:auto; border-radius:12px}
+table{border-collapse:separate; border-spacing:0; width:100%; min-width:760px; background:var(--surface)}
+th,td{padding:9px 11px; text-align:left; border-bottom:1px solid var(--line); vertical-align:middle}
+thead th{
+  position:sticky; top:0; z-index:2; background:var(--surface2); font-size:11px; letter-spacing:.06em;
+  text-transform:uppercase; color:var(--muted); font-weight:600; border-bottom:1px solid var(--line-strong); white-space:nowrap;
+}
+tbody tr:last-child td{border-bottom:0}
+tr.blockrow td{
+  background:var(--accent-soft); color:var(--accent); font-family:"Golos Text",sans-serif; font-weight:700;
+  font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; padding:8px 11px;
+}
+td.name{min-width:300px; max-width:420px; font-size:13px; line-height:1.4}
+td.name .unit{color:var(--muted); font-size:11.5px}
+td.n{text-align:right; font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; white-space:nowrap}
+.pill{display:inline-block; padding:2px 8px; border-radius:20px; font-size:11.5px; font-weight:600; white-space:nowrap}
+.pill.ok{background:var(--ok-soft); color:var(--ok)}
+.pill.warn{background:var(--warn-soft); color:var(--warn)}
+.pill.risk{background:var(--risk-soft); color:var(--risk)}
+.pill.nd{background:var(--nd-soft); color:var(--nd)}
+.stripe{display:inline-block; width:3px; height:15px; border-radius:2px; margin-right:8px; vertical-align:-2px}
+.stripe.ok{background:var(--ok)} .stripe.warn{background:var(--warn)} .stripe.risk{background:var(--risk)} .stripe.nd{background:var(--nd-soft)}
+
+/* matrix */
+table.matrix{min-width:1080px}
+table.matrix th.dept{text-align:right; min-width:92px}
+table.matrix td.cellv{text-align:right; padding:4px 6px}
+input.cellinput{
+  width:100%; min-width:64px; text-align:right; border:1px solid transparent; background:transparent;
+  border-radius:6px; padding:5px 7px; color:var(--ink); font-family:"IBM Plex Mono",monospace;
+  font-size:13px; font-variant-numeric:tabular-nums;
+}
+input.cellinput::placeholder{color:var(--nd)}
+input.cellinput:hover{border-color:var(--line-strong); background:var(--surface2)}
+input.cellinput:focus{outline:none; border-color:var(--accent); background:var(--surface2); box-shadow:0 0 0 3px var(--accent-soft)}
+input.cellinput.filled{font-weight:600}
+td.total{text-align:right; font-family:"IBM Plex Mono",monospace; font-weight:600; background:var(--surface2); font-variant-numeric:tabular-nums}
+
+/* ---------- entry view ---------- */
+.entry-head{display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:14px}
+select,input.txt{
+  font:inherit; font-size:13.5px; color:var(--ink); background:var(--surface);
+  border:1px solid var(--line-strong); border-radius:8px; padding:8px 11px;
+}
+select:focus,input.txt:focus{outline:2px solid var(--accent); outline-offset:1px}
+.entry-row{display:grid; grid-template-columns:1fr 100px 100px 110px 1fr; gap:10px; align-items:center;
+  padding:11px 14px; border-bottom:1px solid var(--line)}
+.entry-row:last-child{border-bottom:0}
+.entry-row .lbl{font-size:13px; line-height:1.4}
+.entry-row .lbl small{display:block; color:var(--muted); font-size:11.5px; margin-top:1px}
+.entry-row input.txt{width:100%; padding:6px 9px; font-size:13px}
+.entry-row input.numf{text-align:right; font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums}
+.colhead{display:grid; grid-template-columns:1fr 100px 100px 110px 1fr; gap:10px; padding:8px 14px;
+  font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); font-weight:600;
+  border-bottom:1px solid var(--line-strong); background:var(--surface2); border-radius:12px 12px 0 0}
+.colhead .r{text-align:right}
+
+.deptbars{display:grid; gap:9px}
+.deptbar{display:grid; grid-template-columns:minmax(150px,1fr) 1fr 56px; gap:12px; align-items:center; font-size:13px}
+.deptbar .track{height:9px; background:var(--nd-soft); border-radius:5px; overflow:hidden}
+.deptbar .track i{display:block; height:100%; background:var(--accent); border-radius:5px}
+.deptbar .pc{text-align:right; font-family:"IBM Plex Mono",monospace; font-size:12.5px; font-variant-numeric:tabular-nums; color:var(--ink2)}
+
+.foot{margin-top:34px; padding-top:16px; border-top:1px solid var(--line); color:var(--muted); font-size:12px}
+.hint{background:var(--accent-soft); color:var(--accent); border-radius:10px; padding:10px 14px; font-size:12.5px; margin-bottom:14px}
+.about{background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--accent); border-radius:12px;
+  padding:16px 18px; margin-top:20px; box-shadow:var(--shadow)}
+.about h2{font-size:15px; margin-bottom:6px}
+.about p{margin:0 0 8px; font-size:13.5px; color:var(--ink2); max-width:76ch; line-height:1.55}
+.about p:last-child{margin-bottom:0}
+.about ol{margin:6px 0 0; padding-left:20px; font-size:13.5px; color:var(--ink2); line-height:1.6; max-width:76ch}
+.meta-line{display:flex; gap:8px 20px; flex-wrap:wrap; margin-top:12px; padding-top:11px; border-top:1px solid var(--line);
+  font-size:12px; color:var(--muted)}
+.meta-line b{color:var(--ink2); font-weight:600}
+.banner{background:var(--warn-soft); color:var(--warn); border-radius:10px; padding:10px 14px; font-size:12.5px; margin-top:14px; font-weight:500}
+@media (max-width:760px){
+  .entry-row,.colhead{grid-template-columns:1fr 78px 78px; }
+  .entry-row .st,.entry-row .note,.colhead .c4,.colhead .c5{display:none}
+  h1{font-size:18px}
+}
+</style>
+<style>
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{color-scheme:light dark}
+img{max-width:100%}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+
+
+<header class="top">
+  <div class="top-inner">
+    <div>
+      <div class="eyebrow">Институт цифровых наук и искусственного интеллекта</div>
+      <h1>Мониторинг оперативного плана 2026</h1>
+      <div class="subtitle">22 показателя · 6 кафедр · данные вносятся и сохраняются</div>
+    </div>
+    <div class="top-right">
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" id="tab-inst" aria-selected="true" data-view="inst">Институт</button>
+        <button class="tab" role="tab" id="tab-matrix" aria-selected="false" data-view="matrix">Матрица кафедр</button>
+        <button class="tab" role="tab" id="tab-entry" aria-selected="false" data-view="entry">Ввод по кафедре</button>
+      </div>
+      <div class="io"><button class="btn" id="btn-export" type="button">Выгрузить</button><button class="btn" id="btn-csv" type="button">CSV</button><label class="btn" for="file-import">Загрузить</label><input type="file" id="file-import" accept=".json,application/json" hidden></div>
+      <div class="savebadge" id="savebadge"><span class="dot" id="savedot"></span><span id="savetext">загрузка…</span></div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div id="view-inst"></div>
+  <div id="view-matrix" hidden></div>
+  <div id="view-entry" hidden></div>
+  <div class="foot" id="foot"></div>
+</div>
+
+<script>
+"use strict";
+
+/* ================== СПРАВОЧНИКИ ================== */
+
+const BLOCKS = [
+  {id:"infra", name:"Инфраструктура и управление"},
+  {id:"sci",   name:"Наука и инновации"},
+  {id:"edu",   name:"Образовательные программы"},
+  {id:"hr",    name:"Кадровый потенциал"},
+  {id:"intl",  name:"Международная деятельность"}
+];
+
+/* unit: "pct" — доля, агрегируется как среднее; "cnt" — количество, суммируется */
+const IND = [
+  {id:"i01", b:"infra", n:"Создание Центра компетенций и переподготовки кадров в сфере IT", u:"cnt", um:"ед.", plan:1,  fact:null, note:"нет информации о выполнении"},
+  {id:"i02", b:"infra", n:"Создание Комитета по биоэтике использования ИИ в научно-исследовательском и образовательном процессе", u:"cnt", um:"ед.", plan:1, fact:null, note:"нет информации о выполнении"},
+  {id:"i03", b:"infra", n:"Создание диссертационного совета по ОП 8D06306 «Системы информационной безопасности»", u:"cnt", um:"ед.", plan:1, fact:1, note:"выполнено"},
+  {id:"i04", b:"infra", n:"Переход от 6 кафедр к 5 кафедрам", u:"cnt", um:"кафедр", plan:5, fact:null, note:"информация о реализации не представлена"},
+
+  {id:"i05", b:"sci", n:"Доля ППС, вовлечённых в НИР (участие в исследованиях и проектах)", u:"pct", um:"%", plan:77, fact:34.4, note:"54 из 157 ППС"},
+  {id:"i06", b:"sci", n:"Услуги по НИР — количество научных проектов", u:"cnt", um:"проектов", plan:28, fact:14, note:"выполнение 50%"},
+  {id:"i07", b:"sci", n:"Публикации в высокорейтинговых изданиях Q1, Q2", u:"cnt", um:"публикаций", plan:25, fact:null, note:"нет информации о выполнении"},
+  {id:"i08", b:"sci", n:"Молодые ППС, занимающиеся научно-исследовательской работой", u:"cnt", um:"человек", plan:30, fact:22, note:"выполнение 73%"},
+  {id:"i09", b:"sci", n:"Разработка прикладных проектов (прототипы, пилоты) для коммерциализации", u:"cnt", um:"ед.", plan:1, fact:1, note:"выполнено"},
+  {id:"i10", b:"sci", n:"Меморандумы и соглашения с представителями крупного бизнеса", u:"cnt", um:"ед.", plan:1, fact:0, note:"не выполнено"},
+  {id:"i11", b:"sci", n:"Доля проектов, финансируемых за счёт средств МИО и бизнеса", u:"pct", um:"%", plan:6, fact:18, note:"3 проекта, перевыполнено"},
+  {id:"i12", b:"sci", n:"Договоры с промышленными и коммерческими партнёрами о внедрении разработок", u:"cnt", um:"договоров", plan:3, fact:3, note:"выполнено"},
+  {id:"i13", b:"sci", n:"Патенты, акты внедрения, лицензионные соглашения, проданные патенты", u:"cnt", um:"ед.", plan:4, fact:9, note:"перевыполнено"},
+
+  {id:"i14", b:"edu", n:"Доля актуализированных образовательных программ", u:"pct", um:"%", plan:20, fact:null, note:"нет информации о выполнении"},
+  {id:"i15", b:"edu", n:"Доля трудоустройства выпускников", u:"pct", um:"%", plan:88, fact:null, note:"нет информации о выполнении"},
+  {id:"i16", b:"edu", n:"Внедрение дуального обучения по образовательным программам", u:"cnt", um:"ОП", plan:2, fact:1, note:"ОП «Автоматизация и управление», 15 студентов"},
+  {id:"i17", b:"edu", n:"Разработка новой ОП «Цифровая криминалистика» (7M06310)", u:"cnt", um:"ед.", plan:1, fact:1, note:"выполнено"},
+
+  {id:"i18", b:"hr", n:"Доля остепенённых ППС", u:"pct", um:"%", plan:75, fact:77.1, note:"121 из 157 ППС"},
+  {id:"i19", b:"hr", n:"Доля ППС, преподающих на английском языке", u:"pct", um:"%", plan:25, fact:24.8, note:"39 из 157 ППС"},
+
+  {id:"i20", b:"intl", n:"Привлечённые зарубежные учёные", u:"cnt", um:"человек", plan:10, fact:null, note:"нет информации о выполнении"},
+  {id:"i21", b:"intl", n:"Научные проекты в рамках международной коллаборации (межправсоглашения)", u:"cnt", um:"проектов", plan:4, fact:0, note:"не выполнено"},
+  {id:"i22", b:"intl", n:"Учёные, прошедшие стажировку в ведущих научных центрах", u:"cnt", um:"человек", plan:11, fact:8, note:"выполнение 72%"}
+];
+
+const DEPTS = [
+  {id:"d1", n:"Кафедра информатики",                        s:"Информатика"},
+  {id:"d2", n:"Кафедра информационной безопасности",         s:"Инф. безопасность"},
+  {id:"d3", n:"Кафедра информационных систем",               s:"Инф. системы"},
+  {id:"d4", n:"Кафедра компьютерной и программной инженерии",s:"Комп. и прогр. инж."},
+  {id:"d5", n:"Кафедра системного анализа и управления",     s:"Системный анализ"},
+  {id:"d6", n:"Кафедра технологии искусственного интеллекта",s:"Технологии ИИ"}
+];
+
+/* ================== СОСТОЯНИЕ ================== */
+
+let state = {};                // {deptId: {indId: {plan, fact, note}}}
+DEPTS.forEach(d => state[d.id] = {});
+let currentView = "inst";
+let currentDept = DEPTS[0].id;
+const pendingTimers = {};
+
+function cellOf(deptId, indId){
+  const d = state[deptId] || (state[deptId] = {});
+  return d[indId] || (d[indId] = {});
+}
+
+/* ================== РАСЧЁТЫ ================== */
+
+function statusOf(plan, fact){
+  if (fact === null || fact === undefined || fact === "" || plan === null || plan === undefined) return "nd";
+  if (!plan) return fact > 0 ? "ok" : "nd";
+  const r = fact / plan;
+  if (r >= 1) return "ok";
+  if (r >= 0.5) return "warn";
+  return "risk";
+}
+const STATUS_LABEL = {ok:"Выполнено", warn:"Частично", risk:"Риск", nd:"Нет данных"};
+
+function fmt(v, unit){
+  if (v === null || v === undefined || v === "") return "—";
+  const n = Number(v);
+  if (!isFinite(n)) return "—";
+  const s = Math.abs(n % 1) > 0.0001 ? n.toFixed(1) : String(Math.round(n));
+  return unit === "pct" ? s + "%" : s;
+}
+function pctOf(plan, fact){
+  if (fact === null || fact === undefined || fact === "" || !plan) return null;
+  return Math.round((Number(fact)/Number(plan))*100);
+}
+
+/* агрегат по кафедрам для одного показателя */
+function aggregate(ind){
+  const facts = [], plans = [];
+  DEPTS.forEach(d => {
+    const c = cellOf(d.id, ind.id);
+    if (c.fact !== undefined && c.fact !== null && c.fact !== "") facts.push(Number(c.fact));
+    if (c.plan !== undefined && c.plan !== null && c.plan !== "") plans.push(Number(c.plan));
+  });
+  const agg = (arr) => {
+    if (!arr.length) return null;
+    if (ind.u === "pct") return arr.reduce((a,b)=>a+b,0)/arr.length;
+    return arr.reduce((a,b)=>a+b,0);
+  };
+  return {fact: agg(facts), plan: agg(plans), filled: facts.length};
+}
+
+function deptProgress(deptId){
+  let done = 0, counted = 0;
+  IND.forEach(ind => {
+    const c = cellOf(deptId, ind.id);
+    const plan = (c.plan === undefined || c.plan === null || c.plan === "") ? null : Number(c.plan);
+    const fact = (c.fact === undefined || c.fact === null || c.fact === "") ? null : Number(c.fact);
+    if (plan === null && fact === null) return;
+    counted++;
+    if (statusOf(plan === null ? ind.plan : plan, fact) === "ok") done++;
+  });
+  return {done, counted, pct: counted ? Math.round(done/counted*100) : 0};
+}
+
+function instTally(){
+  const t = {ok:0, warn:0, risk:0, nd:0};
+  IND.forEach(i => t[statusOf(i.plan, i.fact)]++);
+  return t;
+}
+
+/* ================== РЕНДЕР: ИНСТИТУТ ================== */
+
+function renderInst(){
+  const t = instTally();
+  const total = IND.length;
+  const perf = Math.round((t.ok / total) * 100);
+
+  let html = `
+  <div class="about">
+    <h2>Что это за страница</h2>
+    <p>Рабочий дашборд для мониторинга оперативного плана Института цифровых наук и искусственного интеллекта.
+    Здесь собраны все 22 показателя оперплана с плановыми и фактическими значениями по итогам 1 полугодия 2026 года,
+    а каждая из 6 кафедр вносит свои значения по тем же показателям — чтобы видеть вклад кафедр в общий результат
+    института и точки риска до следующего отчётного периода.</p>
+    <p><b>Как пользоваться:</b></p>
+    <ol>
+      <li><b>Институт</b> — сводная картина: сколько показателей выполнено, где риск, по каким нет данных.</li>
+      <li><b>Матрица кафедр</b> — быстрый ввод факта по всем кафедрам сразу, итог по строке считается автоматически.</li>
+      <li><b>Ввод по кафедре</b> — подробное заполнение: план кафедры, факт и комментарий по каждому показателю.</li>
+    </ol>
+    <div class="meta-line">
+      <span>Автор: <b>Гульвира Бауыржановна</b></span>
+      <span>Период: <b>оперативный план 2026, 1 полугодие</b></span>
+      <span>Охват: <b>22 показателя · 6 кафедр</b></span>
+      <span>Статус: <b>заполняется</b></span>
+    </div>
+  </div>
+  <div class="strip">
+    <div class="cell"><div class="k">Показателей</div><div class="v">${total}</div><div class="s">оперплан 2026, 1 полугодие</div></div>
+    <div class="cell"><div class="k">Выполнено</div><div class="v ok">${t.ok}</div><div class="s">${perf}% от плана мониторинга</div></div>
+    <div class="cell"><div class="k">Частично</div><div class="v warn">${t.warn}</div><div class="s">50–99% от плана</div></div>
+    <div class="cell"><div class="k">Риск</div><div class="v risk">${t.risk}</div><div class="s">менее 50% от плана</div></div>
+    <div class="cell"><div class="k">Нет данных</div><div class="v nd">${t.nd}</div><div class="s">сведения не представлены</div></div>
+  </div>`;
+
+  // блоки
+  html += `<section><div class="sec-head"><h2>Выполнение по направлениям</h2>
+    <span class="sec-note">доля показателей направления в каждом статусе</span></div><div class="blocks">`;
+  BLOCKS.forEach(b => {
+    const list = IND.filter(i => i.b === b.id);
+    const c = {ok:0,warn:0,risk:0,nd:0};
+    list.forEach(i => c[statusOf(i.plan,i.fact)]++);
+    const p = n => (n/list.length*100).toFixed(1) + "%";
+    html += `<div class="block">
+      <div class="block-top"><span class="block-name">${b.name}</span>
+      <span class="block-pct" style="color:var(--${c.ok/list.length>=0.6?'ok':c.ok/list.length>=0.3?'warn':'risk'})">${Math.round(c.ok/list.length*100)}%</span></div>
+      <div class="bar">
+        <i class="ok" style="width:${p(c.ok)}"></i><i class="warn" style="width:${p(c.warn)}"></i><i class="risk" style="width:${p(c.risk)}"></i>
+      </div>
+      <div class="legend">
+        <span><i class="sw ok"></i>${c.ok} выполнено</span>
+        <span><i class="sw warn"></i>${c.warn} частично</span>
+        <span><i class="sw risk"></i>${c.risk} риск</span>
+        <span><i class="sw nd"></i>${c.nd} нет данных</span>
+      </div></div>`;
+  });
+  html += `</div></section>`;
+
+  // прогресс заполнения по кафедрам
+  html += `<section><div class="sec-head"><h2>Заполнение данных по кафедрам</h2>
+    <span class="sec-note">доля показателей со статусом «выполнено» среди заполненных</span></div>
+    <div class="panel" style="padding:16px"><div class="deptbars">`;
+  DEPTS.forEach(d => {
+    const p = deptProgress(d.id);
+    html += `<div class="deptbar">
+      <span>${d.n}</span>
+      <span class="track"><i style="width:${p.pct}%"></i></span>
+      <span class="pc">${p.counted ? p.done + "/" + p.counted : "—"}</span>
+    </div>`;
+  });
+  html += `</div></div></section>`;
+
+  // таблица показателей института
+  html += `<section><div class="sec-head"><h2>Показатели оперативного плана</h2>
+    <span class="sec-note">факт — по данным мониторинга за 1 полугодие 2026 г.; «Кафедры» — сумма (количества) или среднее (доли) внесённых значений</span></div>
+    <div class="panel scroll"><table><thead><tr>
+      <th>Показатель</th><th style="text-align:right">План</th><th style="text-align:right">Факт</th>
+      <th style="text-align:right">%</th><th>Статус</th><th style="text-align:right">Кафедры</th><th>Комментарий</th>
+    </tr></thead><tbody>`;
+  BLOCKS.forEach(b => {
+    html += `<tr class="blockrow"><td colspan="7">${b.name}</td></tr>`;
+    IND.filter(i => i.b === b.id).forEach(i => {
+      const st = statusOf(i.plan, i.fact);
+      const pc = pctOf(i.plan, i.fact);
+      const a = aggregate(i);
+      html += `<tr>
+        <td class="name"><span class="stripe ${st}"></span>${i.n} <span class="unit">(${i.um})</span></td>
+        <td class="n">${fmt(i.plan, i.u)}</td>
+        <td class="n">${fmt(i.fact, i.u)}</td>
+        <td class="n">${pc === null ? "—" : pc + "%"}</td>
+        <td><span class="pill ${st}">${STATUS_LABEL[st]}</span></td>
+        <td class="n" style="color:var(--${a.fact===null?'nd':'accent'})">${a.fact === null ? "—" : fmt(a.fact, i.u) + " <span style=\"color:var(--muted);font-size:11px\">/" + a.filled + "</span>"}</td>
+        <td style="color:var(--muted); font-size:12.5px">${i.note}</td>
+      </tr>`;
+    });
+  });
+  html += `</tbody></table></div></section>`;
+  document.getElementById("view-inst").innerHTML = html;
+}
+
+/* ================== РЕНДЕР: МАТРИЦА ================== */
+
+function renderMatrix(){
+  let html = `<div class="hint">Введите фактическое значение показателя по каждой кафедре — данные сохраняются автоматически. Плановые значения кафедр задаются во вкладке «Ввод по кафедре».</div>
+  <div class="panel scroll"><table class="matrix"><thead><tr>
+    <th>Показатель</th><th style="text-align:right">План инст.</th>`;
+  DEPTS.forEach(d => html += `<th class="dept" title="${d.n}">${d.s}</th>`);
+  html += `<th style="text-align:right">Итого</th></tr></thead><tbody>`;
+
+  BLOCKS.forEach(b => {
+    html += `<tr class="blockrow"><td colspan="${DEPTS.length + 3}">${b.name}</td></tr>`;
+    IND.filter(i => i.b === b.id).forEach(i => {
+      html += `<tr data-ind="${i.id}"><td class="name">${i.n} <span class="unit">(${i.um})</span></td>
+        <td class="n" style="color:var(--muted)">${fmt(i.plan, i.u)}</td>`;
+      DEPTS.forEach(d => {
+        const c = cellOf(d.id, i.id);
+        const v = (c.fact === undefined || c.fact === null) ? "" : c.fact;
+        html += `<td class="cellv"><input class="cellinput${v!==""?" filled":""}" id="m_${d.id}_${i.id}"
+           inputmode="decimal" placeholder="—" value="${v}" aria-label="${i.n} — ${d.n}" data-d="${d.id}" data-i="${i.id}"></td>`;
+      });
+      const a = aggregate(i);
+      html += `<td class="total" id="tot_${i.id}">${a.fact === null ? "—" : fmt(a.fact, i.u)}</td></tr>`;
+    });
+  });
+  html += `</tbody></table></div>`;
+  document.getElementById("view-matrix").innerHTML = html;
+
+  document.querySelectorAll("#view-matrix input.cellinput").forEach(inp => {
+    inp.addEventListener("input", () => {
+      const d = inp.dataset.d, i = inp.dataset.i;
+      const raw = inp.value.replace(",", ".").trim();
+      const c = cellOf(d, i);
+      c.fact = raw === "" ? null : (isFinite(Number(raw)) ? Number(raw) : null);
+      inp.classList.toggle("filled", raw !== "");
+      const ind = IND.find(x => x.id === i);
+      const a = aggregate(ind);
+      const tot = document.getElementById("tot_" + i);
+      if (tot) tot.textContent = a.fact === null ? "—" : fmt(a.fact, ind.u);
+      queueSave();
+    });
+  });
+}
+
+/* ================== РЕНДЕР: ВВОД ПО КАФЕДРЕ ================== */
+
+function renderEntry(){
+  const p = deptProgress(currentDept);
+  let html = `<div class="entry-head">
+    <label for="deptsel" style="font-weight:600">Кафедра</label>
+    <select id="deptsel">${DEPTS.map(d => `<option value="${d.id}"${d.id===currentDept?" selected":""}>${d.n}</option>`).join("")}</select>
+    <span style="color:var(--muted); font-size:12.5px">заполнено показателей: <b class="num">${p.counted}</b> из ${IND.length} · выполнено <b class="num">${p.done}</b></span>
+  </div>
+  <div class="hint">План кафедры можно оставить пустым — тогда статус считается от планового значения института.</div>
+  <div class="panel">
+    <div class="colhead"><span>Показатель</span><span class="r">План</span><span class="r">Факт</span><span class="r c4">Статус</span><span class="c5">Примечание</span></div>`;
+
+  BLOCKS.forEach(b => {
+    html += `<div style="padding:9px 14px; background:var(--accent-soft); color:var(--accent); font-family:'Golos Text',sans-serif;
+      font-weight:700; font-size:11.5px; letter-spacing:.08em; text-transform:uppercase">${b.name}</div>`;
+    IND.filter(i => i.b === b.id).forEach(i => {
+      const c = cellOf(currentDept, i.id);
+      const plan = (c.plan === undefined || c.plan === null) ? "" : c.plan;
+      const fact = (c.fact === undefined || c.fact === null) ? "" : c.fact;
+      const st = statusOf(plan === "" ? i.plan : Number(plan), fact === "" ? null : Number(fact));
+      html += `<div class="entry-row" data-ind="${i.id}">
+        <div class="lbl">${i.n}<small>${i.um} · план института ${fmt(i.plan, i.u)}</small></div>
+        <input class="txt numf" id="ep_${i.id}" inputmode="decimal" placeholder="${fmt(i.plan,i.u)}" value="${plan}" aria-label="План: ${i.n}">
+        <input class="txt numf" id="ef_${i.id}" inputmode="decimal" placeholder="—" value="${fact}" aria-label="Факт: ${i.n}">
+        <div class="st"><span class="pill ${st}" id="es_${i.id}">${STATUS_LABEL[st]}</span></div>
+        <div class="note"><input class="txt" id="en_${i.id}" placeholder="комментарий" value="${(c.note||"").replace(/"/g,"&quot;")}" aria-label="Комментарий: ${i.n}"></div>
+      </div>`;
+    });
+  });
+  html += `</div>`;
+  document.getElementById("view-entry").innerHTML = html;
+
+  document.getElementById("deptsel").addEventListener("change", e => {
+    currentDept = e.target.value; renderEntry();
+  });
+
+  IND.forEach(i => {
+    const refresh = () => {
+      const c = cellOf(currentDept, i.id);
+      const pv = document.getElementById("ep_" + i.id).value.replace(",", ".").trim();
+      const fv = document.getElementById("ef_" + i.id).value.replace(",", ".").trim();
+      c.plan = pv === "" ? null : (isFinite(Number(pv)) ? Number(pv) : null);
+      c.fact = fv === "" ? null : (isFinite(Number(fv)) ? Number(fv) : null);
+      c.note = document.getElementById("en_" + i.id).value;
+      const st = statusOf(c.plan === null ? i.plan : c.plan, c.fact);
+      const badge = document.getElementById("es_" + i.id);
+      badge.className = "pill " + st; badge.textContent = STATUS_LABEL[st];
+      queueSave();
+    };
+    ["ep_","ef_","en_"].forEach(pre => document.getElementById(pre + i.id).addEventListener("input", refresh));
+  });
+}
+
+/* ================== СОХРАНЕНИЕ (локально в браузере) ================== */
+
+const LS_KEY = "idsai_op_2026_v1";
+
+function setSaveState(kind, text){
+  document.getElementById("savedot").className = "dot" + (kind === "off" ? " off" : "");
+  document.getElementById("savetext").textContent = text;
+}
+
+function persist(){
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify({savedAt: new Date().toISOString(), state: state}));
+    setSaveState("on", "сохранено в браузере");
+  } catch (e) {
+    setSaveState("off", "не удалось сохранить");
+  }
+}
+
+function queueSave(){
+  clearTimeout(pendingTimers.all);
+  setSaveState("on", "сохранение…");
+  pendingTimers.all = setTimeout(persist, 500);
+}
+
+function loadLocal(){
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    if (!data || !data.state) return false;
+    DEPTS.forEach(d => { if (data.state[d.id]) state[d.id] = data.state[d.id]; });
+    return true;
+  } catch (e) { return false; }
+}
+
+/* ---- обмен данными: выгрузка и загрузка файла ---- */
+
+function exportJSON(){
+  const payload = {
+    source: "Оперплан ИЦН и ИИ, 1 полугодие 2026",
+    exportedAt: new Date().toISOString(),
+    departments: DEPTS,
+    indicators: IND.map(i => ({id: i.id, name: i.n, unit: i.um, instPlan: i.plan, instFact: i.fact})),
+    state: state
+  };
+  downloadFile(JSON.stringify(payload, null, 2), "operplan-icn-" + new Date().toISOString().slice(0,10) + ".json", "application/json");
+}
+
+function exportCSV(){
+  const rows = [["Направление","Показатель","Ед.","План института","Факт института","Кафедра","План кафедры","Факт кафедры","Статус","Комментарий"]];
+  BLOCKS.forEach(b => IND.filter(i => i.b === b.id).forEach(i => {
+    DEPTS.forEach(d => {
+      const c = cellOf(d.id, i.id);
+      if (c.plan == null && c.fact == null && !(c.note && c.note.length)) return;
+      const st = statusOf(c.plan == null ? i.plan : c.plan, c.fact);
+      rows.push([b.name, i.n, i.um, i.plan, i.fact === null ? "" : i.fact, d.n,
+                 c.plan == null ? "" : c.plan, c.fact == null ? "" : c.fact, STATUS_LABEL[st], c.note || ""]);
+    });
+  }));
+  const csv = "﻿" + rows.map(r => r.map(v => '"' + String(v).replace(/"/g,'""') + '"').join(";")).join("\r\n");
+  downloadFile(csv, "operplan-icn-" + new Date().toISOString().slice(0,10) + ".csv", "text/csv");
+}
+
+function downloadFile(text, filename, type){
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([text], {type: type + ";charset=utf-8"}));
+  a.download = filename;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+
+function importJSON(file){
+  const fr = new FileReader();
+  fr.onload = () => {
+    try {
+      const data = JSON.parse(fr.result);
+      const incoming = data && data.state ? data.state : null;
+      if (!incoming) throw new Error("нет данных");
+      let merged = 0;
+      DEPTS.forEach(d => {
+        const src = incoming[d.id];
+        if (!src) return;
+        Object.keys(src).forEach(k => {
+          const c = src[k];
+          if (!c) return;
+          if (c.plan != null || c.fact != null || (c.note && c.note.length)) { state[d.id][k] = Object.assign({}, c); merged++; }
+        });
+      });
+      persist(); render();
+      setSaveState("on", "загружено значений: " + merged);
+    } catch (e) {
+      setSaveState("off", "файл не распознан");
+    }
+  };
+  fr.readAsText(file);
+}
+
+function boot(){
+  const had = loadLocal();
+  setSaveState("on", had ? "данные загружены" : "данные сохраняются в браузере");
+  render();
+  document.getElementById("foot").innerHTML =
+    "Источник плановых и фактических значений института — сводный отчёт по мониторингу оперативного плана за 1 полугодие 2026 г. " +
+    "Перечень кафедр — финансово-аналитический паспорт института. " +
+    "Введённые значения хранятся в браузере этого компьютера. Чтобы собрать данные кафедр вместе, " +
+    "попросите каждую кафедру нажать «Выгрузить» и пришлите файлы — кнопка «Загрузить» объединит их в общую картину.";
+}
+
+function render(){
+  renderInst();
+  if (currentView === "matrix") renderMatrix();
+  if (currentView === "entry") renderEntry();
+}
+
+document.querySelectorAll(".tab").forEach(t => {
+  t.addEventListener("click", () => {
+    currentView = t.dataset.view;
+    document.querySelectorAll(".tab").forEach(x => x.setAttribute("aria-selected", String(x === t)));
+    ["inst","matrix","entry"].forEach(v => document.getElementById("view-" + v).hidden = (v !== currentView));
+    if (currentView === "inst") renderInst();
+    if (currentView === "matrix") renderMatrix();
+    if (currentView === "entry") renderEntry();
+  });
+});
+
+document.getElementById("btn-export").addEventListener("click", exportJSON);
+document.getElementById("btn-csv").addEventListener("click", exportCSV);
+document.getElementById("file-import").addEventListener("change", e => {
+  if (e.target.files && e.target.files[0]) importJSON(e.target.files[0]);
+  e.target.value = "";
+});
+
+boot();
+</script>
+
+</body>
+</html>
