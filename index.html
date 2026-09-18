@@ -352,11 +352,26 @@ function deptProgress(deptId){
 
 function instTally(){
   const t = {ok:0, warn:0, risk:0, nd:0};
-  IND.forEach(i => t[statusOf(i.plan, i.fact)]++);
+  IND.forEach(i => t[statusOf(i.plan, resolved(i).val)]++);
   return t;
 }
 
 /* ================== РЕНДЕР: ИНСТИТУТ ================== */
+
+/* уточнённый факт: данные мониторинга института, дополненные сводкой по кафедрам */
+function resolved(ind){
+  const a = aggregate(ind);
+  const iv = (ind.fact === null || ind.fact === undefined || ind.fact === "") ? null : Number(ind.fact);
+  if (ind.u === "pct"){
+    if (iv !== null) return {val: iv, src: "инст.", filled: a.filled};
+    if (a.fact !== null) return {val: a.fact, src: "кафедры", filled: a.filled};
+    return {val: null, src: "", filled: a.filled};
+  }
+  if (iv === null && a.fact === null) return {val: null, src: "", filled: a.filled};
+  if (a.fact === null) return {val: iv, src: "инст.", filled: a.filled};
+  if (iv === null || a.fact > iv) return {val: a.fact, src: "кафедры", filled: a.filled};
+  return {val: iv, src: "инст.", filled: a.filled};
+}
 
 function renderInst(){
   const t = instTally();
@@ -385,10 +400,10 @@ function renderInst(){
   </div>
   <div class="strip">
     <div class="cell"><div class="k">Показателей</div><div class="v">${total}</div><div class="s">оперплан 2026, 1 полугодие</div></div>
-    <div class="cell"><div class="k">Выполнено</div><div class="v ok">${t.ok}</div><div class="s">${perf}% от плана мониторинга</div></div>
+    <div class="cell"><div class="k">Выполнено</div><div class="v ok">${t.ok}</div><div class="s">${perf}% показателей</div></div>
     <div class="cell"><div class="k">Частично</div><div class="v warn">${t.warn}</div><div class="s">50–99% от плана</div></div>
     <div class="cell"><div class="k">Риск</div><div class="v risk">${t.risk}</div><div class="s">менее 50% от плана</div></div>
-    <div class="cell"><div class="k">Нет данных</div><div class="v nd">${t.nd}</div><div class="s">сведения не представлены</div></div>
+    <div class="cell"><div class="k">Нет данных</div><div class="v nd">${t.nd}</div><div class="s">ни институт, ни кафедры</div></div>
   </div>`;
 
   // блоки
@@ -397,7 +412,7 @@ function renderInst(){
   BLOCKS.forEach(b => {
     const list = IND.filter(i => i.b === b.id);
     const c = {ok:0,warn:0,risk:0,nd:0};
-    list.forEach(i => c[statusOf(i.plan,i.fact)]++);
+    list.forEach(i => c[statusOf(i.plan, resolved(i).val)]++);
     const p = n => (n/list.length*100).toFixed(1) + "%";
     html += `<div class="block">
       <div class="block-top"><span class="block-name">${b.name}</span>
@@ -430,24 +445,27 @@ function renderInst(){
 
   // таблица показателей института
   html += `<section><div class="sec-head"><h2>Показатели оперативного плана</h2>
-    <span class="sec-note">факт — по данным мониторинга за 1 полугодие 2026 г.; «Кафедры» — сумма (количества) или среднее (доли) внесённых значений</span></div>
+    <span class="sec-note">«Факт мониторинга» — сводный отчёт за 1 полугодие 2026 г. «Кафедры» — сумма (для количеств) или среднее (для долей) внесённых значений. «Уточнённый факт» — большее из двух: именно он определяет % и статус</span></div>
     <div class="panel scroll"><table><thead><tr>
-      <th>Показатель</th><th style="text-align:right">План</th><th style="text-align:right">Факт</th>
-      <th style="text-align:right">%</th><th>Статус</th><th style="text-align:right">Кафедры</th><th>Комментарий</th>
+      <th>Показатель</th><th style="text-align:right">План</th><th style="text-align:right">Факт мониторинга</th>
+      <th style="text-align:right">Кафедры</th><th style="text-align:right">Уточнённый факт</th>
+      <th style="text-align:right">%</th><th>Статус</th><th>Комментарий</th>
     </tr></thead><tbody>`;
   BLOCKS.forEach(b => {
-    html += `<tr class="blockrow"><td colspan="7">${b.name}</td></tr>`;
+    html += `<tr class="blockrow"><td colspan="8">${b.name}</td></tr>`;
     IND.filter(i => i.b === b.id).forEach(i => {
-      const st = statusOf(i.plan, i.fact);
-      const pc = pctOf(i.plan, i.fact);
+      const r = resolved(i);
+      const st = statusOf(i.plan, r.val);
+      const pc = pctOf(i.plan, r.val);
       const a = aggregate(i);
       html += `<tr>
         <td class="name"><span class="stripe ${st}"></span>${i.n} <span class="unit">(${i.um})</span></td>
         <td class="n">${fmt(i.plan, i.u)}</td>
-        <td class="n">${fmt(i.fact, i.u)}</td>
+        <td class="n" style="color:var(--muted)">${fmt(i.fact, i.u)}</td>
+        <td class="n" style="color:var(--${a.fact===null?'nd':'accent'})">${a.fact === null ? "—" : fmt(a.fact, i.u) + " <span style=\"color:var(--muted);font-size:11px\">/" + a.filled + " каф.</span>"}</td>
+        <td class="n" style="font-weight:600">${fmt(r.val, i.u)}${r.src === "кафедры" ? " <span style=\"color:var(--accent);font-size:10.5px\">каф.</span>" : ""}</td>
         <td class="n">${pc === null ? "—" : pc + "%"}</td>
         <td><span class="pill ${st}">${STATUS_LABEL[st]}</span></td>
-        <td class="n" style="color:var(--${a.fact===null?'nd':'accent'})">${a.fact === null ? "—" : fmt(a.fact, i.u) + " <span style=\"color:var(--muted);font-size:11px\">/" + a.filled + "</span>"}</td>
         <td style="color:var(--muted); font-size:12.5px">${i.note}</td>
       </tr>`;
     });
