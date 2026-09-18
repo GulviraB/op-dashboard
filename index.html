@@ -44,6 +44,10 @@
   --nd:#7c8698; --nd-soft:#1e242e;
   --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px -18px rgba(0,0,0,.9);
 }
+:root{--c1:#3b5bdb; --c2:#0b7285; --c3:#7048e8; --c4:#c2255c; --c5:#e8590c; --c6:#5c940d}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--c1:#8da2fb; --c2:#3bc9db; --c3:#b197fc; --c4:#f783ac; --c5:#ffa94d; --c6:#a9e34b}}
+:root[data-theme="dark"]{--c1:#8da2fb; --c2:#3bc9db; --c3:#b197fc; --c4:#f783ac; --c5:#ffa94d; --c6:#a9e34b}
+.dept-dot{width:10px; height:10px; border-radius:3px; display:inline-block; margin-right:8px; vertical-align:-1px}
 *{box-sizing:border-box}
 body{
   margin:0; background:var(--paper); color:var(--ink);
@@ -173,7 +177,7 @@ select:focus,input.txt:focus{outline:2px solid var(--accent); outline-offset:1px
 .colhead .r{text-align:right}
 
 .deptbars{display:grid; gap:9px}
-.deptbar{display:grid; grid-template-columns:minmax(170px,1fr) 1fr 62px; gap:12px; align-items:center; font-size:14.5px}
+.deptbar{display:grid; grid-template-columns:minmax(180px,1fr) 1fr 104px; gap:12px; align-items:center; font-size:14.5px}
 .deptbar .track{height:9px; background:var(--nd-soft); border-radius:5px; overflow:hidden}
 .deptbar .track i{display:block; height:100%; background:var(--accent); border-radius:5px}
 .deptbar .pc{text-align:right; font-family:"IBM Plex Mono",monospace; font-size:13.5px; font-variant-numeric:tabular-nums; color:var(--ink2)}
@@ -313,8 +317,8 @@ function fmt(v, unit){
   if (v === null || v === undefined || v === "") return "—";
   const n = Number(v);
   if (!isFinite(n)) return "—";
-  const s = Math.abs(n % 1) > 0.0001 ? n.toFixed(1) : String(Math.round(n));
-  return unit === "pct" ? s + "%" : s;
+  if (unit === "pct") return String(Math.round(n)) + "%";
+  return Math.abs(n % 1) > 0.0001 ? n.toFixed(1) : String(Math.round(n));
 }
 function pctOf(plan, fact){
   if (fact === null || fact === undefined || fact === "" || !plan) return null;
@@ -433,12 +437,13 @@ function renderInst(){
   html += `<section><div class="sec-head"><h2>Заполнение данных по кафедрам</h2>
     <span class="sec-note">доля показателей со статусом «выполнено» среди заполненных</span></div>
     <div class="panel" style="padding:16px"><div class="deptbars">`;
-  DEPTS.forEach(d => {
+  DEPTS.forEach((d, di) => {
     const p = deptProgress(d.id);
+    const col = "var(--c" + (di + 1) + ")";
     html += `<div class="deptbar">
-      <span>${d.n}</span>
-      <span class="track"><i style="width:${p.pct}%"></i></span>
-      <span class="pc">${p.counted ? p.done + "/" + p.counted : "—"}</span>
+      <span><i class="dept-dot" style="background:${col}"></i>${d.n}</span>
+      <span class="track"><i style="width:${p.pct}%; background:${col}"></i></span>
+      <span class="pc">${p.counted ? p.done + "/" + p.counted + " · " + p.pct + "%" : "—"}</span>
     </div>`;
   });
   html += `</div></div></section>`;
@@ -480,7 +485,7 @@ function renderMatrix(){
   let html = `<div class="hint">Введите фактическое значение показателя по каждой кафедре — данные сохраняются автоматически. Плановые значения кафедр задаются во вкладке «Ввод по кафедре».</div>
   <div class="panel scroll"><table class="matrix"><thead><tr>
     <th>Показатель</th><th style="text-align:right">План инст.</th>`;
-  DEPTS.forEach(d => html += `<th class="dept" title="${d.n}">${d.s}</th>`);
+  DEPTS.forEach((d, di) => html += `<th class="dept" title="${d.n}" style="color:var(--c${di + 1})">${d.s}</th>`);
   html += `<th style="text-align:right">Итого</th></tr></thead><tbody>`;
 
   BLOCKS.forEach(b => {
