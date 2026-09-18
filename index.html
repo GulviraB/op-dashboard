@@ -48,7 +48,7 @@
 body{
   margin:0; background:var(--paper); color:var(--ink);
   font-family:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,sans-serif;
-  font-size:14px; line-height:1.5; -webkit-font-smoothing:antialiased;
+  font-size:15.5px; line-height:1.55; -webkit-font-smoothing:antialiased;
 }
 .wrap{max-width:1360px; margin:0 auto; padding-inline:18px; padding-block:0 56px}
 h1,h2,h3{font-family:"Golos Text","IBM Plex Sans",sans-serif; margin:0; text-wrap:balance}
@@ -61,26 +61,26 @@ header.top{
   backdrop-filter:blur(10px); border-bottom:1px solid var(--line);
 }
 .top-inner{max-width:1360px; margin:0 auto; padding:14px 18px; display:flex; gap:18px; align-items:flex-end; flex-wrap:wrap}
-.eyebrow{font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); font-weight:600}
-h1{font-size:21px; font-weight:700; letter-spacing:-.01em; line-height:1.2}
-.subtitle{color:var(--ink2); font-size:13px; margin-top:2px}
+.eyebrow{font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); font-weight:600}
+h1{font-size:23px; font-weight:700; letter-spacing:-.01em; line-height:1.2}
+.subtitle{color:var(--ink2); font-size:14px; margin-top:2px}
 .top-right{margin-left:auto; display:flex; gap:8px; align-items:center; flex-wrap:wrap}
 
 .tabs{display:flex; gap:2px; background:var(--surface); border:1px solid var(--line); border-radius:9px; padding:3px}
 .tab{
   appearance:none; border:0; background:transparent; color:var(--ink2); cursor:pointer;
-  font:inherit; font-weight:600; font-size:13px; padding:7px 13px; border-radius:6px; white-space:nowrap;
+  font:inherit; font-weight:600; font-size:14px; padding:8px 14px; border-radius:6px; white-space:nowrap;
 }
 .tab[aria-selected="true"]{background:var(--accent); color:#fff}
 .tab:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
 
 .io{display:flex; gap:6px}
-.btn{appearance:none; font:inherit; font-size:12.5px; font-weight:600; cursor:pointer;
+.btn{appearance:none; font:inherit; font-size:13.5px; font-weight:600; cursor:pointer;
   background:var(--surface); color:var(--ink2); border:1px solid var(--line-strong);
   border-radius:8px; padding:7px 12px; line-height:1.1; white-space:nowrap}
 .btn:hover{border-color:var(--accent); color:var(--accent)}
 .btn:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
-.savebadge{font-size:12px; color:var(--muted); display:flex; align-items:center; gap:6px}
+.savebadge{font-size:13px; color:var(--muted); display:flex; align-items:center; gap:6px}
 .dot{width:7px; height:7px; border-radius:50%; background:var(--ok)}
 .dot.off{background:var(--warn)}
 
@@ -88,15 +88,15 @@ h1{font-size:21px; font-weight:700; letter-spacing:-.01em; line-height:1.2}
 .strip{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:1px; background:var(--line);
   border:1px solid var(--line); border-radius:12px; overflow:hidden; margin-top:20px}
 .cell{background:var(--surface); padding:14px 16px}
-.cell .k{font-size:11px; letter-spacing:.09em; text-transform:uppercase; color:var(--muted); font-weight:600}
-.cell .v{font-family:"Golos Text",sans-serif; font-size:27px; font-weight:700; line-height:1.15; margin-top:5px; font-variant-numeric:tabular-nums}
-.cell .s{font-size:12px; color:var(--muted); margin-top:2px}
+.cell .k{font-size:12px; letter-spacing:.09em; text-transform:uppercase; color:var(--muted); font-weight:600}
+.cell .v{font-family:"Golos Text",sans-serif; font-size:30px; font-weight:700; line-height:1.15; margin-top:5px; font-variant-numeric:tabular-nums}
+.cell .s{font-size:13px; color:var(--muted); margin-top:2px}
 .v.ok{color:var(--ok)} .v.warn{color:var(--warn)} .v.risk{color:var(--risk)} .v.nd{color:var(--nd)}
 
 section{margin-top:30px}
 .sec-head{display:flex; align-items:baseline; gap:12px; margin-bottom:12px; flex-wrap:wrap}
-h2{font-size:15px; font-weight:700; letter-spacing:.01em}
-.sec-note{font-size:12.5px; color:var(--muted)}
+h2{font-size:17px; font-weight:700; letter-spacing:.01em}
+.sec-note{font-size:13.5px; color:var(--muted)}
 
 .panel{background:var(--surface); border:1px solid var(--line); border-radius:12px; box-shadow:var(--shadow)}
 
@@ -104,12 +104,12 @@ h2{font-size:15px; font-weight:700; letter-spacing:.01em}
 .blocks{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:14px}
 .block{padding:15px 16px; background:var(--surface); border:1px solid var(--line); border-radius:11px}
 .block-top{display:flex; justify-content:space-between; align-items:baseline; gap:10px}
-.block-name{font-family:"Golos Text",sans-serif; font-weight:700; font-size:13.5px}
-.block-pct{font-family:"IBM Plex Mono",monospace; font-size:15px; font-weight:600; font-variant-numeric:tabular-nums}
+.block-name{font-family:"Golos Text",sans-serif; font-weight:700; font-size:14.5px}
+.block-pct{font-family:"IBM Plex Mono",monospace; font-size:16.5px; font-weight:600; font-variant-numeric:tabular-nums}
 .bar{height:7px; border-radius:4px; background:var(--nd-soft); margin-top:10px; overflow:hidden; display:flex}
 .bar i{display:block; height:100%}
 .bar i.ok{background:var(--ok)} .bar i.warn{background:var(--warn)} .bar i.risk{background:var(--risk)}
-.legend{display:flex; gap:12px; font-size:11.5px; color:var(--muted); margin-top:9px; flex-wrap:wrap}
+.legend{display:flex; gap:14px; font-size:12.5px; color:var(--muted); margin-top:9px; flex-wrap:wrap}
 .legend span{display:flex; align-items:center; gap:5px}
 .sw{width:9px; height:9px; border-radius:2px; display:inline-block}
 .sw.ok{background:var(--ok)} .sw.warn{background:var(--warn)} .sw.risk{background:var(--risk)} .sw.nd{background:var(--nd)}
@@ -117,20 +117,20 @@ h2{font-size:15px; font-weight:700; letter-spacing:.01em}
 /* ---------- tables ---------- */
 .scroll{overflow-x:auto; border-radius:12px}
 table{border-collapse:separate; border-spacing:0; width:100%; min-width:760px; background:var(--surface)}
-th,td{padding:9px 11px; text-align:left; border-bottom:1px solid var(--line); vertical-align:middle}
+th,td{padding:11px 12px; text-align:left; border-bottom:1px solid var(--line); vertical-align:middle}
 thead th{
-  position:sticky; top:0; z-index:2; background:var(--surface2); font-size:11px; letter-spacing:.06em;
+  position:sticky; top:0; z-index:2; background:var(--surface2); font-size:12px; letter-spacing:.06em;
   text-transform:uppercase; color:var(--muted); font-weight:600; border-bottom:1px solid var(--line-strong); white-space:nowrap;
 }
 tbody tr:last-child td{border-bottom:0}
 tr.blockrow td{
   background:var(--accent-soft); color:var(--accent); font-family:"Golos Text",sans-serif; font-weight:700;
-  font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; padding:8px 11px;
+  font-size:12.5px; letter-spacing:.08em; text-transform:uppercase; padding:9px 12px;
 }
-td.name{min-width:300px; max-width:420px; font-size:13px; line-height:1.4}
-td.name .unit{color:var(--muted); font-size:11.5px}
+td.name{min-width:320px; max-width:440px; font-size:14.5px; line-height:1.45}
+td.name .unit{color:var(--muted); font-size:12.5px}
 td.n{text-align:right; font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; white-space:nowrap}
-.pill{display:inline-block; padding:2px 8px; border-radius:20px; font-size:11.5px; font-weight:600; white-space:nowrap}
+.pill{display:inline-block; padding:3px 9px; border-radius:20px; font-size:12.5px; font-weight:600; white-space:nowrap}
 .pill.ok{background:var(--ok-soft); color:var(--ok)}
 .pill.warn{background:var(--warn-soft); color:var(--warn)}
 .pill.risk{background:var(--risk-soft); color:var(--risk)}
@@ -145,7 +145,7 @@ table.matrix td.cellv{text-align:right; padding:4px 6px}
 input.cellinput{
   width:100%; min-width:64px; text-align:right; border:1px solid transparent; background:transparent;
   border-radius:6px; padding:5px 7px; color:var(--ink); font-family:"IBM Plex Mono",monospace;
-  font-size:13px; font-variant-numeric:tabular-nums;
+  font-size:14.5px; font-variant-numeric:tabular-nums;
 }
 input.cellinput::placeholder{color:var(--nd)}
 input.cellinput:hover{border-color:var(--line-strong); background:var(--surface2)}
@@ -156,38 +156,38 @@ td.total{text-align:right; font-family:"IBM Plex Mono",monospace; font-weight:60
 /* ---------- entry view ---------- */
 .entry-head{display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:14px}
 select,input.txt{
-  font:inherit; font-size:13.5px; color:var(--ink); background:var(--surface);
+  font:inherit; font-size:14.5px; color:var(--ink); background:var(--surface);
   border:1px solid var(--line-strong); border-radius:8px; padding:8px 11px;
 }
 select:focus,input.txt:focus{outline:2px solid var(--accent); outline-offset:1px}
 .entry-row{display:grid; grid-template-columns:1fr 100px 100px 110px 1fr; gap:10px; align-items:center;
   padding:11px 14px; border-bottom:1px solid var(--line)}
 .entry-row:last-child{border-bottom:0}
-.entry-row .lbl{font-size:13px; line-height:1.4}
-.entry-row .lbl small{display:block; color:var(--muted); font-size:11.5px; margin-top:1px}
-.entry-row input.txt{width:100%; padding:6px 9px; font-size:13px}
+.entry-row .lbl{font-size:14.5px; line-height:1.45}
+.entry-row .lbl small{display:block; color:var(--muted); font-size:12.5px; margin-top:1px}
+.entry-row input.txt{width:100%; padding:7px 10px; font-size:14.5px}
 .entry-row input.numf{text-align:right; font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums}
 .colhead{display:grid; grid-template-columns:1fr 100px 100px 110px 1fr; gap:10px; padding:8px 14px;
-  font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); font-weight:600;
+  font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); font-weight:600;
   border-bottom:1px solid var(--line-strong); background:var(--surface2); border-radius:12px 12px 0 0}
 .colhead .r{text-align:right}
 
 .deptbars{display:grid; gap:9px}
-.deptbar{display:grid; grid-template-columns:minmax(150px,1fr) 1fr 56px; gap:12px; align-items:center; font-size:13px}
+.deptbar{display:grid; grid-template-columns:minmax(170px,1fr) 1fr 62px; gap:12px; align-items:center; font-size:14.5px}
 .deptbar .track{height:9px; background:var(--nd-soft); border-radius:5px; overflow:hidden}
 .deptbar .track i{display:block; height:100%; background:var(--accent); border-radius:5px}
-.deptbar .pc{text-align:right; font-family:"IBM Plex Mono",monospace; font-size:12.5px; font-variant-numeric:tabular-nums; color:var(--ink2)}
+.deptbar .pc{text-align:right; font-family:"IBM Plex Mono",monospace; font-size:13.5px; font-variant-numeric:tabular-nums; color:var(--ink2)}
 
-.foot{margin-top:34px; padding-top:16px; border-top:1px solid var(--line); color:var(--muted); font-size:12px}
-.hint{background:var(--accent-soft); color:var(--accent); border-radius:10px; padding:10px 14px; font-size:12.5px; margin-bottom:14px}
+.foot{margin-top:34px; padding-top:16px; border-top:1px solid var(--line); color:var(--muted); font-size:13px}
+.hint{background:var(--accent-soft); color:var(--accent); border-radius:10px; padding:11px 15px; font-size:13.5px; margin-bottom:14px}
 .about{background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--accent); border-radius:12px;
   padding:16px 18px; margin-top:20px; box-shadow:var(--shadow)}
-.about h2{font-size:15px; margin-bottom:6px}
-.about p{margin:0 0 8px; font-size:13.5px; color:var(--ink2); max-width:76ch; line-height:1.55}
+.about h2{font-size:17px; margin-bottom:7px}
+.about p{margin:0 0 9px; font-size:14.5px; color:var(--ink2); max-width:76ch; line-height:1.55}
 .about p:last-child{margin-bottom:0}
-.about ol{margin:6px 0 0; padding-left:20px; font-size:13.5px; color:var(--ink2); line-height:1.6; max-width:76ch}
+.about ol{margin:7px 0 0; padding-left:20px; font-size:14.5px; color:var(--ink2); line-height:1.6; max-width:76ch}
 .meta-line{display:flex; gap:8px 20px; flex-wrap:wrap; margin-top:12px; padding-top:11px; border-top:1px solid var(--line);
-  font-size:12px; color:var(--muted)}
+  font-size:13px; color:var(--muted)}
 .meta-line b{color:var(--ink2); font-weight:600}
 .banner{background:var(--warn-soft); color:var(--warn); border-radius:10px; padding:10px 14px; font-size:12.5px; margin-top:14px; font-weight:500}
 @media (max-width:760px){
@@ -462,11 +462,11 @@ function renderInst(){
         <td class="name"><span class="stripe ${st}"></span>${i.n} <span class="unit">(${i.um})</span></td>
         <td class="n">${fmt(i.plan, i.u)}</td>
         <td class="n" style="color:var(--muted)">${fmt(i.fact, i.u)}</td>
-        <td class="n" style="color:var(--${a.fact===null?'nd':'accent'})">${a.fact === null ? "—" : fmt(a.fact, i.u) + " <span style=\"color:var(--muted);font-size:11px\">/" + a.filled + " каф.</span>"}</td>
-        <td class="n" style="font-weight:600">${fmt(r.val, i.u)}${r.src === "кафедры" ? " <span style=\"color:var(--accent);font-size:10.5px\">каф.</span>" : ""}</td>
+        <td class="n" style="color:var(--${a.fact===null?'nd':'accent'})">${a.fact === null ? "—" : fmt(a.fact, i.u) + " <span style=\"color:var(--muted);font-size:12px\">/" + a.filled + " каф.</span>"}</td>
+        <td class="n" style="font-weight:600">${fmt(r.val, i.u)}${r.src === "кафедры" ? " <span style=\"color:var(--accent);font-size:11.5px\">каф.</span>" : ""}</td>
         <td class="n">${pc === null ? "—" : pc + "%"}</td>
         <td><span class="pill ${st}">${STATUS_LABEL[st]}</span></td>
-        <td style="color:var(--muted); font-size:12.5px">${i.note}</td>
+        <td style="color:var(--muted); font-size:13.5px">${i.note}</td>
       </tr>`;
     });
   });
@@ -524,7 +524,7 @@ function renderEntry(){
   let html = `<div class="entry-head">
     <label for="deptsel" style="font-weight:600">Кафедра</label>
     <select id="deptsel">${DEPTS.map(d => `<option value="${d.id}"${d.id===currentDept?" selected":""}>${d.n}</option>`).join("")}</select>
-    <span style="color:var(--muted); font-size:12.5px">заполнено показателей: <b class="num">${p.counted}</b> из ${IND.length} · выполнено <b class="num">${p.done}</b></span>
+    <span style="color:var(--muted); font-size:13.5px">заполнено показателей: <b class="num">${p.counted}</b> из ${IND.length} · выполнено <b class="num">${p.done}</b></span>
   </div>
   <div class="hint">План кафедры можно оставить пустым — тогда статус считается от планового значения института.</div>
   <div class="panel">
@@ -532,7 +532,7 @@ function renderEntry(){
 
   BLOCKS.forEach(b => {
     html += `<div style="padding:9px 14px; background:var(--accent-soft); color:var(--accent); font-family:'Golos Text',sans-serif;
-      font-weight:700; font-size:11.5px; letter-spacing:.08em; text-transform:uppercase">${b.name}</div>`;
+      font-weight:700; font-size:12.5px; letter-spacing:.08em; text-transform:uppercase">${b.name}</div>`;
     IND.filter(i => i.b === b.id).forEach(i => {
       const c = cellOf(currentDept, i.id);
       const plan = (c.plan === undefined || c.plan === null) ? "" : c.plan;
