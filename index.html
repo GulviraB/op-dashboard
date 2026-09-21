@@ -192,7 +192,7 @@ select:focus,input.txt:focus{outline:2px solid var(--accent); outline-offset:1px
 .foot{margin-top:34px; padding-top:16px; border-top:1px solid var(--line); color:var(--muted); font-size:13px}
 .hint{background:var(--accent-soft); color:var(--accent); border-radius:10px; padding:11px 15px; font-size:13.5px; margin-bottom:14px}
 .about{background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--accent); border-radius:12px;
-  padding:16px 18px; margin-top:20px; box-shadow:var(--shadow)}
+  padding:16px 18px; margin-top:30px; box-shadow:var(--shadow)}
 .about h2{font-size:17px; margin-bottom:7px}
 .about p{margin:0 0 9px; font-size:14.5px; color:var(--ink2); line-height:1.55; text-align:justify; text-justify:inter-word; hyphens:auto}
 .about p:last-child{margin-bottom:0}
@@ -393,7 +393,7 @@ function renderInst(){
   const total = IND.length;
   const perf = Math.round((t.ok / total) * 100);
 
-  let html = `
+  const about = `
   <div class="about">
     <h2>Что это за страница</h2>
     <p>Рабочий дашборд для мониторинга оперативного плана Института цифровых наук и искусственного интеллекта.
@@ -412,7 +412,9 @@ function renderInst(){
       <span>Охват: <b>22 показателя · 6 кафедр</b></span>
       <span>Статус: <b>заполняется</b></span>
     </div>
-  </div>
+  </div>`;
+
+  let html = `
   <div class="strip">
     <div class="cell"><div class="k">Показателей</div><div class="v">${total}</div><div class="s">оперплан 2026, 1 полугодие</div></div>
     <div class="cell"><div class="k">Выполнено</div><div class="v ok">${t.ok}</div><div class="s">${perf}% показателей</div></div>
@@ -488,7 +490,7 @@ function renderInst(){
     });
   });
   html += `</tbody></table></div></section>`;
-  document.getElementById("view-inst").innerHTML = html;
+  document.getElementById("view-inst").innerHTML = html + about;
 }
 
 /* ================== РЕНДЕР: МАТРИЦА ================== */
