@@ -48,6 +48,10 @@
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--c1:#8da2fb; --c2:#3bc9db; --c3:#b197fc; --c4:#f783ac; --c5:#ffa94d; --c6:#a9e34b}}
 :root[data-theme="dark"]{--c1:#8da2fb; --c2:#3bc9db; --c3:#b197fc; --c4:#f783ac; --c5:#ffa94d; --c6:#a9e34b}
 .dept-dot{width:10px; height:10px; border-radius:3px; display:inline-block; margin-right:8px; vertical-align:-1px}
+.doclink{display:inline-flex; width:22px; height:22px; border-radius:6px; color:#fff; font-size:11.5px;
+  font-weight:700; align-items:center; justify-content:center; margin-right:4px; text-decoration:none}
+.doclink:hover{filter:brightness(1.15)}
+.doclink:focus-visible{outline:2px solid var(--ink); outline-offset:2px}
 *{box-sizing:border-box}
 body{
   margin:0; background:var(--paper); color:var(--ink);
@@ -169,6 +173,7 @@ select:focus,input.txt:focus{outline:2px solid var(--accent); outline-offset:1px
 .entry-row{display:grid; grid-template-columns:1fr 100px 100px 110px 1fr; gap:10px; align-items:center;
   padding:11px 14px; border-bottom:1px solid var(--line)}
 .entry-row:last-child{border-bottom:0}
+.entry-row .note{display:grid; gap:6px}
 .entry-row .lbl{font-size:14.5px; line-height:1.45}
 .entry-row .lbl small{display:block; color:var(--muted); font-size:12.5px; margin-top:1px}
 .entry-row input.txt{width:100%; padding:7px 10px; font-size:14.5px}
@@ -292,7 +297,11 @@ const DEPTS = [
 
 /* ================== СОСТОЯНИЕ ================== */
 
-let state = {};                // {deptId: {indId: {plan, fact, note}}}
+/* Адрес веб-приложения Google Apps Script (общее хранилище).
+   Пустая строка — дашборд работает только с локальным браузерным хранилищем. */
+const API_URL = "";
+
+let state = {};                // {deptId: {indId: {plan, fact, note, docs}}}
 DEPTS.forEach(d => state[d.id] = {});
 let currentView = "inst";
 let currentDept = DEPTS[0].id;
@@ -452,14 +461,14 @@ function renderInst(){
 
   // таблица показателей института
   html += `<section><div class="sec-head"><h2>Показатели оперативного плана</h2>
-    <span class="sec-note">«Факт мониторинга» — сводный отчёт за 1 полугодие 2026 г. «Кафедры» — сумма (для количеств) или среднее (для долей) внесённых значений. «Уточнённый факт» — большее из двух: именно он определяет % и статус</span></div>
+    <span class="sec-note">Цветные значки в колонке «Документы» ведут в папку кафедры с подтверждающими материалами. «Факт мониторинга» — сводный отчёт за 1 полугодие 2026 г. «Кафедры» — сумма (для количеств) или среднее (для долей) внесённых значений. «Уточнённый факт» — большее из двух: именно он определяет % и статус</span></div>
     <div class="panel scroll"><table><thead><tr>
       <th>Показатель</th><th style="text-align:right">План</th><th style="text-align:right">Факт мониторинга</th>
       <th style="text-align:right">Кафедры</th><th style="text-align:right">Уточнённый факт</th>
-      <th style="text-align:right">%</th><th>Статус</th><th>Комментарий</th>
+      <th style="text-align:right">%</th><th>Статус</th><th>Документы</th><th>Комментарий</th>
     </tr></thead><tbody>`;
   BLOCKS.forEach(b => {
-    html += `<tr class="blockrow"><td colspan="8">${b.name}</td></tr>`;
+    html += `<tr class="blockrow"><td colspan="9">${b.name}</td></tr>`;
     IND.filter(i => i.b === b.id).forEach(i => {
       const r = resolved(i);
       const st = statusOf(i.plan, r.val);
@@ -473,6 +482,7 @@ function renderInst(){
         <td class="n" style="font-weight:600">${fmt(r.val, i.u)}${r.src === "кафедры" ? " <span style=\"color:var(--accent);font-size:11.5px\">каф.</span>" : ""}</td>
         <td class="n">${pc === null ? "—" : pc + "%"}</td>
         <td><span class="pill ${st}">${STATUS_LABEL[st]}</span></td>
+        <td>${DEPTS.map((d, di) => { const dc = cellOf(d.id, i.id); return dc.docs ? `<a class="doclink" style="background:var(--c${di + 1})" href="${dc.docs}" target="_blank" rel="noopener" title="${d.n}">${di + 1}</a>` : ""; }).join("") || "<span style=\"color:var(--nd)\">—</span>"}</td>
         <td style="color:var(--muted); font-size:13.5px">${i.note}</td>
       </tr>`;
     });
@@ -519,7 +529,7 @@ function renderMatrix(){
       const a = aggregate(ind);
       const tot = document.getElementById("tot_" + i);
       if (tot) tot.textContent = a.fact === null ? "—" : fmt(a.fact, ind.u);
-      queueSave();
+      queueSave(d);
     });
   });
 }
@@ -535,7 +545,7 @@ function renderEntry(){
   </div>
   <div class="hint">План кафедры можно оставить пустым — тогда статус считается от планового значения института.</div>
   <div class="panel">
-    <div class="colhead"><span>Показатель</span><span class="r">План</span><span class="r">Факт</span><span class="r c4">Статус</span><span class="c5">Примечание</span></div>`;
+    <div class="colhead"><span>Показатель</span><span class="r">План</span><span class="r">Факт</span><span class="r c4">Статус</span><span class="c5">Примечание и ссылка на документы</span></div>`;
 
   BLOCKS.forEach(b => {
     html += `<div style="padding:9px 14px; background:var(--accent-soft); color:var(--accent); font-family:'Golos Text',sans-serif;
@@ -550,7 +560,10 @@ function renderEntry(){
         <input class="txt numf" id="ep_${i.id}" inputmode="decimal" placeholder="${fmt(i.plan,i.u)}" value="${plan}" aria-label="План: ${i.n}">
         <input class="txt numf" id="ef_${i.id}" inputmode="decimal" placeholder="—" value="${fact}" aria-label="Факт: ${i.n}">
         <div class="st"><span class="pill ${st}" id="es_${i.id}">${STATUS_LABEL[st]}</span></div>
-        <div class="note"><input class="txt" id="en_${i.id}" placeholder="комментарий" value="${(c.note||"").replace(/"/g,"&quot;")}" aria-label="Комментарий: ${i.n}"></div>
+        <div class="note">
+          <input class="txt" id="en_${i.id}" placeholder="комментарий" value="${(c.note||"").replace(/"/g,"&quot;")}" aria-label="Комментарий: ${i.n}">
+          <input class="txt" id="ed_${i.id}" placeholder="ссылка на подтверждающие документы (Google Диск)" value="${(c.docs||"").replace(/"/g,"&quot;")}" aria-label="Документы: ${i.n}">
+        </div>
       </div>`;
     });
   });
@@ -569,18 +582,20 @@ function renderEntry(){
       c.plan = pv === "" ? null : (isFinite(Number(pv)) ? Number(pv) : null);
       c.fact = fv === "" ? null : (isFinite(Number(fv)) ? Number(fv) : null);
       c.note = document.getElementById("en_" + i.id).value;
+      c.docs = document.getElementById("ed_" + i.id).value.trim();
       const st = statusOf(c.plan === null ? i.plan : c.plan, c.fact);
       const badge = document.getElementById("es_" + i.id);
       badge.className = "pill " + st; badge.textContent = STATUS_LABEL[st];
-      queueSave();
+      queueSave(currentDept);
     };
-    ["ep_","ef_","en_"].forEach(pre => document.getElementById(pre + i.id).addEventListener("input", refresh));
+    ["ep_","ef_","en_","ed_"].forEach(pre => document.getElementById(pre + i.id).addEventListener("input", refresh));
   });
 }
 
-/* ================== СОХРАНЕНИЕ (локально в браузере) ================== */
+/* ================== СОХРАНЕНИЕ ================== */
 
 const LS_KEY = "idsai_op_2026_v1";
+const dirty = new Set();
 
 function setSaveState(kind, text){
   document.getElementById("savedot").className = "dot" + (kind === "off" ? " off" : "");
@@ -588,18 +603,26 @@ function setSaveState(kind, text){
 }
 
 function persist(){
-  try {
-    localStorage.setItem(LS_KEY, JSON.stringify({savedAt: new Date().toISOString(), state: state}));
-    setSaveState("on", "сохранено в браузере");
-  } catch (e) {
-    setSaveState("off", "не удалось сохранить");
-  }
+  try { localStorage.setItem(LS_KEY, JSON.stringify({savedAt: new Date().toISOString(), state: state})); } catch (e) {}
+  if (!API_URL){ setSaveState("on", "сохранено в браузере"); dirty.clear(); return; }
+  const ids = dirty.size ? Array.from(dirty) : DEPTS.map(d => d.id);
+  const depts = {};
+  ids.forEach(id => depts[id] = state[id] || {});
+  fetch(API_URL, {method: "POST", headers: {"Content-Type": "text/plain;charset=utf-8"},
+                  body: JSON.stringify({action: "save", depts: depts})})
+    .then(r => r.json())
+    .then(r => {
+      if (r && r.ok){ dirty.clear(); setSaveState("on", "сохранено для всех"); }
+      else setSaveState("off", "ошибка сохранения");
+    })
+    .catch(() => setSaveState("off", "нет связи с хранилищем"));
 }
 
-function queueSave(){
+function queueSave(deptId){
+  if (deptId) dirty.add(deptId);
   clearTimeout(pendingTimers.all);
   setSaveState("on", "сохранение…");
-  pendingTimers.all = setTimeout(persist, 500);
+  pendingTimers.all = setTimeout(persist, 700);
 }
 
 function loadLocal(){
@@ -608,6 +631,17 @@ function loadLocal(){
     if (!raw) return false;
     const data = JSON.parse(raw);
     if (!data || !data.state) return false;
+    DEPTS.forEach(d => { if (data.state[d.id]) state[d.id] = data.state[d.id]; });
+    return true;
+  } catch (e) { return false; }
+}
+
+async function loadRemote(){
+  if (!API_URL) return false;
+  try {
+    const url = API_URL + (API_URL.indexOf("?") < 0 ? "?" : "&") + "t=" + Date.now();
+    const data = await (await fetch(url)).json();
+    if (!data || !data.ok || !data.state) return false;
     DEPTS.forEach(d => { if (data.state[d.id]) state[d.id] = data.state[d.id]; });
     return true;
   } catch (e) { return false; }
@@ -663,9 +697,10 @@ function importJSON(file){
         Object.keys(src).forEach(k => {
           const c = src[k];
           if (!c) return;
-          if (c.plan != null || c.fact != null || (c.note && c.note.length)) { state[d.id][k] = Object.assign({}, c); merged++; }
+          if (c.plan != null || c.fact != null || (c.note && c.note.length) || (c.docs && c.docs.length)) { state[d.id][k] = Object.assign({}, c); merged++; }
         });
       });
+      DEPTS.forEach(d => dirty.add(d.id));
       persist(); render();
       setSaveState("on", "загружено значений: " + merged);
     } catch (e) {
@@ -675,15 +710,21 @@ function importJSON(file){
   fr.readAsText(file);
 }
 
-function boot(){
-  const had = loadLocal();
-  setSaveState("on", had ? "данные загружены" : "данные сохраняются в браузере");
+async function boot(){
+  loadLocal();
+  render();
+  if (API_URL) setSaveState("on", "загрузка данных…");
+  const remote = await loadRemote();
+  setSaveState(API_URL && !remote ? "off" : "on",
+    !API_URL ? "данные сохраняются в браузере"
+             : (remote ? "общее хранилище подключено" : "нет связи с хранилищем"));
   render();
   document.getElementById("foot").innerHTML =
     "Источник плановых и фактических значений института — сводный отчёт по мониторингу оперативного плана за 1 полугодие 2026 г. " +
     "Перечень кафедр — финансово-аналитический паспорт института. " +
-    "Введённые значения хранятся в браузере этого компьютера. Чтобы собрать данные кафедр вместе, " +
-    "попросите каждую кафедру нажать «Выгрузить» и пришлите файлы — кнопка «Загрузить» объединит их в общую картину.";
+    (API_URL
+      ? "Значения, введённые любой кафедрой, сохраняются в общей таблице и видны всем, кто открывает эту страницу. Подтверждающие документы кафедра размещает в своей папке на Google Диске и вставляет ссылку в поле «Документы» у соответствующего показателя."
+      : "Введённые значения хранятся в браузере этого компьютера. Чтобы собрать данные кафедр вместе, попросите каждую кафедру нажать «Выгрузить» и пришлите файлы — кнопка «Загрузить» объединит их в общую картину.");
 }
 
 function render(){
