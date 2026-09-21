@@ -87,6 +87,8 @@ h1{font-size:23px; font-weight:700; letter-spacing:-.01em; line-height:1.2}
   background:var(--surface); color:var(--ink2); border:1px solid var(--line-strong);
   border-radius:8px; padding:7px 12px; line-height:1.1; white-space:nowrap}
 .btn:hover{border-color:var(--accent); color:var(--accent)}
+.btn-main{background:var(--accent); border-color:var(--accent); color:#fff}
+.btn-main:hover{background:var(--accent); border-color:var(--accent); color:#fff; filter:brightness(1.1)}
 .btn:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
 .savebadge{font-size:13px; color:var(--muted); display:flex; align-items:center; gap:6px}
 .dot{width:7px; height:7px; border-radius:50%; background:var(--ok)}
@@ -230,7 +232,8 @@ img{max-width:100%}
         <button class="tab" role="tab" id="tab-matrix" aria-selected="false" data-view="matrix">Матрица кафедр</button>
         <button class="tab" role="tab" id="tab-entry" aria-selected="false" data-view="entry">Ввод по кафедре</button>
       </div>
-      <div class="io"><button class="btn" id="btn-export" type="button">Выгрузить</button><button class="btn" id="btn-csv" type="button">CSV</button><label class="btn" for="file-import">Загрузить</label><input type="file" id="file-import" accept=".json,application/json" hidden></div>
+      <div class="io"><button class="btn btn-main" id="btn-report" type="button">Отчёт для директора</button>
+        <button class="btn" id="btn-export" type="button">Выгрузить</button><button class="btn" id="btn-csv" type="button">CSV</button><label class="btn" for="file-import">Загрузить</label><input type="file" id="file-import" accept=".json,application/json" hidden></div>
       <div class="savebadge" id="savebadge"><span class="dot" id="savedot"></span><span id="savetext">загрузка…</span></div>
     </div>
   </div>
@@ -677,6 +680,147 @@ function exportCSV(){
   downloadFile(csv, "operplan-icn-" + new Date().toISOString().slice(0,10) + ".csv", "text/csv");
 }
 
+/* ---- отчёт для руководства в формате Word ---- */
+
+function esc(s){
+  return String(s == null ? "" : s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+function ruDate(){
+  const m = ["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"];
+  const d = new Date();
+  return d.getDate() + " " + m[d.getMonth()] + " " + d.getFullYear() + " г.";
+}
+
+function exportReport(){
+  const t = instTally();
+  const total = IND.length;
+  const filled = DEPTS.filter(d => deptProgress(d.id).counted > 0);
+
+  const clarified = IND.filter(i => { const r = resolved(i); return r.src === "кафедры" && r.val !== null; });
+  const risky = IND.filter(i => statusOf(i.plan, resolved(i).val) === "risk");
+  const nodata = IND.filter(i => statusOf(i.plan, resolved(i).val) === "nd");
+
+  let h = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">';
+  h += '<head><meta charset="utf-8"><title>Сводный отчёт</title><style>';
+  h += '@page{size:A4 portrait; margin:2cm 1.5cm 2cm 2.5cm}';
+  h += 'body{font-family:"Times New Roman",serif; font-size:12pt; line-height:1.3}';
+  h += 'h1{font-size:14pt; text-align:center; text-transform:uppercase}';
+  h += 'h2{font-size:12pt; margin-top:18pt}';
+  h += 'p{text-align:justify; text-indent:1.25cm; margin:6pt 0}';
+  h += 'p.nonind{text-indent:0}';
+  h += 'table{border-collapse:collapse; width:100%; font-size:10pt; margin:8pt 0}';
+  h += 'th,td{border:1px solid #000; padding:3pt 4pt; vertical-align:top}';
+  h += 'th{background:#e6ebfb; font-weight:bold; text-align:center}';
+  h += 'td.c{text-align:center} td.r{text-align:right}';
+  h += '.small{font-size:9pt; color:#444}';
+  h += '</style></head><body>';
+
+  h += '<p class="nonind" style="text-align:right">' + esc(ruDate()) + '</p>';
+  h += '<h1>Сводный отчёт<br>о выполнении оперативного плана за 1 полугодие 2026 года<br>в разрезе кафедр</h1>';
+  h += '<p class="nonind" style="text-align:center"><b>Институт цифровых наук и искусственного интеллекта</b></p>';
+
+  h += '<h2>1. Общие результаты</h2>';
+  h += '<p>Оперативный план института на 2026 год содержит ' + total + ' показателей. ';
+  h += 'Сведения в разрезе кафедр представили ' + filled.length + ' из ' + DEPTS.length + ' кафедр. ';
+  h += 'С учётом данных кафедр выполнено ' + t.ok + ' показателей (' + Math.round(t.ok / total * 100) + '%), ';
+  h += 'частично выполнено ' + t.warn + ', в зоне риска ' + t.risk + ', без данных ' + t.nd + '.</p>';
+
+  h += '<table><tr><th>Статус</th><th>Показателей</th><th>Доля</th></tr>';
+  [["Выполнено", t.ok], ["Частично выполнено", t.warn], ["В зоне риска", t.risk], ["Данные не представлены", t.nd]]
+    .forEach(r => { h += '<tr><td>' + r[0] + '</td><td class="c">' + r[1] + '</td><td class="c">' + Math.round(r[1] / total * 100) + '%</td></tr>'; });
+  h += '</table>';
+
+  h += '<h2>2. Выполнение по направлениям</h2>';
+  h += '<table><tr><th>Направление</th><th>Всего</th><th>Выполнено</th><th>Частично</th><th>Риск</th><th>Нет данных</th></tr>';
+  BLOCKS.forEach(b => {
+    const list = IND.filter(i => i.b === b.id);
+    const c = {ok:0, warn:0, risk:0, nd:0};
+    list.forEach(i => c[statusOf(i.plan, resolved(i).val)]++);
+    h += '<tr><td>' + esc(b.name) + '</td><td class="c">' + list.length + '</td><td class="c">' + c.ok +
+         '</td><td class="c">' + c.warn + '</td><td class="c">' + c.risk + '</td><td class="c">' + c.nd + '</td></tr>';
+  });
+  h += '</table>';
+
+  h += '<h2>3. Показатели оперативного плана</h2>';
+  h += '<table><tr><th style="width:38%">Показатель</th><th>Ед.</th><th>План</th><th>Факт по мониторингу</th><th>Данные кафедр</th><th>Уточнённый факт</th><th>%</th><th>Статус</th></tr>';
+  BLOCKS.forEach(b => {
+    const list = IND.filter(i => i.b === b.id);
+    if (!list.length) return;
+    h += '<tr><td colspan="8" style="background:#f2f5f8"><b>' + esc(b.name) + '</b></td></tr>';
+    list.forEach(i => {
+      const r = resolved(i);
+      const a = aggregate(i);
+      const st = statusOf(i.plan, r.val);
+      const pc = pctOf(i.plan, r.val);
+      h += '<tr><td>' + esc(i.n) + '</td><td class="c">' + esc(i.um) + '</td><td class="c">' + fmt(i.plan, i.u) +
+           '</td><td class="c">' + fmt(i.fact, i.u) + '</td><td class="c">' + (a.fact === null ? "—" : fmt(a.fact, i.u)) +
+           '</td><td class="c"><b>' + fmt(r.val, i.u) + '</b></td><td class="c">' + (pc === null ? "—" : pc + "%") +
+           '</td><td class="c">' + STATUS_LABEL[st] + '</td></tr>';
+    });
+  });
+  h += '</table>';
+
+  if (clarified.length){
+    h += '<h2>4. Показатели, уточнённые по данным кафедр</h2>';
+    h += '<p>По следующим показателям сведения кафедр дополняют либо превышают значения, учтённые в сводном отчёте по мониторингу оперативного плана за 1 полугодие 2026 года. Уточнённые значения подтверждаются материалами кафедр.</p>';
+    h += '<table><tr><th style="width:44%">Показатель</th><th>План</th><th>По мониторингу</th><th>По данным кафедр</th><th>Статус</th></tr>';
+    clarified.forEach(i => {
+      const r = resolved(i);
+      h += '<tr><td>' + esc(i.n) + '</td><td class="c">' + fmt(i.plan, i.u) + '</td><td class="c">' + fmt(i.fact, i.u) +
+           '</td><td class="c"><b>' + fmt(r.val, i.u) + '</b></td><td class="c">' + STATUS_LABEL[statusOf(i.plan, r.val)] + '</td></tr>';
+    });
+    h += '</table>';
+  }
+
+  if (risky.length || nodata.length){
+    h += '<h2>5. Зоны риска</h2>';
+    if (risky.length){
+      h += '<p>Показатели с выполнением менее 50 процентов от планового значения:</p><ol>';
+      risky.forEach(i => { const r = resolved(i); h += '<li>' + esc(i.n) + ' — план ' + fmt(i.plan, i.u) + ', факт ' + fmt(r.val, i.u) + '</li>'; });
+      h += '</ol>';
+    }
+    if (nodata.length){
+      h += '<p>Показатели, по которым сведения не представлены ни в сводном отчёте, ни кафедрами:</p><ol>';
+      nodata.forEach(i => { h += '<li>' + esc(i.n) + ' — план ' + fmt(i.plan, i.u) + '</li>'; });
+      h += '</ol>';
+    }
+  }
+
+  h += '<h2>6. Представление данных кафедрами</h2>';
+  h += '<table><tr><th style="width:46%">Кафедра</th><th>Заполнено показателей</th><th>Из них выполнено</th><th>Доля выполнения</th></tr>';
+  DEPTS.forEach(d => {
+    const p = deptProgress(d.id);
+    h += '<tr><td>' + esc(d.n) + '</td><td class="c">' + p.counted + ' из ' + total + '</td><td class="c">' + p.done +
+         '</td><td class="c">' + (p.counted ? p.pct + "%" : "—") + '</td></tr>';
+  });
+  h += '</table>';
+
+  h += '<h2>Приложение. Детализация по кафедрам</h2>';
+  DEPTS.forEach(d => {
+    const rows = IND.filter(i => { const c = cellOf(d.id, i.id); return c.plan != null || c.fact != null || (c.note && c.note.length) || (c.docs && c.docs.length); });
+    if (!rows.length) return;
+    h += '<p class="nonind" style="margin-top:14pt"><b>' + esc(d.n) + '</b></p>';
+    h += '<table><tr><th style="width:30%">Показатель</th><th>План кафедры</th><th>Факт</th><th>Статус</th><th style="width:40%">Подтверждение</th></tr>';
+    rows.forEach(i => {
+      const c = cellOf(d.id, i.id);
+      const st = statusOf(c.plan == null ? i.plan : c.plan, c.fact);
+      let conf = esc(c.note || "");
+      if (c.docs) conf += (conf ? '<br>' : '') + '<span class="small">Документы: ' + esc(c.docs) + '</span>';
+      h += '<tr><td>' + esc(i.n) + '</td><td class="c">' + (c.plan == null ? "—" : fmt(c.plan, i.u)) +
+           '</td><td class="c">' + (c.fact == null ? "—" : fmt(c.fact, i.u)) + '</td><td class="c">' + STATUS_LABEL[st] +
+           '</td><td>' + (conf || "—") + '</td></tr>';
+    });
+    h += '</table>';
+  });
+
+  h += '<p class="nonind" style="margin-top:24pt">Исполнитель: _______________________ / Гульвира Бауыржановна /</p>';
+  h += '<p class="nonind">Дата составления: ' + esc(ruDate()) + '</p>';
+  h += '</body></html>';
+
+  downloadFile("﻿" + h, "Сводный-отчёт-оперплан-ИЦН-" + new Date().toISOString().slice(0,10) + ".doc", "application/msword");
+}
+
 function downloadFile(text, filename, type){
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([text], {type: type + ";charset=utf-8"}));
@@ -746,6 +890,7 @@ document.querySelectorAll(".tab").forEach(t => {
   });
 });
 
+document.getElementById("btn-report").addEventListener("click", exportReport);
 document.getElementById("btn-export").addEventListener("click", exportJSON);
 document.getElementById("btn-csv").addEventListener("click", exportCSV);
 document.getElementById("file-import").addEventListener("change", e => {
