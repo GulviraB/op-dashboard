@@ -1015,7 +1015,11 @@ function ruDate(){
 function exportReport(){
   let h = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">';
   h += '<head><meta charset="utf-8"><title>Отчёт по оперативному плану</title><style>';
-  h += '@page{size:A4 landscape; margin:1.5cm}';
+  /* альбомная ориентация для Word: одних правил @page ему мало,
+     нужна именованная секция и mso-page-orientation */
+  h += '@page WordSection1{size:29.7cm 21cm; mso-page-orientation:landscape; margin:1.5cm 1.5cm 1.5cm 1.5cm}';
+  h += 'div.WordSection1{page:WordSection1}';
+  h += '@page{size:29.7cm 21cm; margin:1.5cm}';
   h += 'body{font-family:"Times New Roman",serif; font-size:11pt}';
   h += 'h1{font-size:13pt; text-align:center; margin:0 0 4pt}';
   h += 'p.sub{text-align:center; font-size:11pt; margin:0 0 12pt}';
@@ -1024,7 +1028,7 @@ function exportReport(){
   h += 'th{background:#e6ebfb; font-weight:bold; text-align:center; font-size:8.5pt}';
   h += 'td.c{text-align:center; white-space:nowrap}';
   h += 'tr.blk td{background:#f2f5f8; font-weight:bold; text-transform:uppercase; font-size:8.5pt}';
-  h += '</style></head><body>';
+  h += '</style></head><body><div class="WordSection1">';
 
   h += '<h1>Выполнение оперативного плана за 1 полугодие 2026 года в разрезе кафедр</h1>';
   h += '<p class="sub">Институт цифровых наук и искусственного интеллекта · ' + esc(ruDate()) + '</p>';
@@ -1058,6 +1062,7 @@ function exportReport(){
   h += '<p style="margin-top:16pt; font-size:9pt">Нумерация кафедр в колонке «Документы»: ' +
        DEPTS.map((d, di) => (di + 1) + " — " + esc(d.n)).join('; ') + '.</p>';
 
+  h += '</div></body></html>';
   downloadFile("\ufeff" + h, "Отчёт-оперплан-ИЦН-" + new Date().toISOString().slice(0,10) + ".doc", "application/msword");
 }
 
@@ -1144,7 +1149,9 @@ function calcText(ind){
 function exportSmart(){
   let h = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">';
   h += '<head><meta charset="utf-8"><title>SMART ENU</title><style>';
-  h += '@page{size:A4 landscape; margin:1.2cm}';
+  h += '@page WordSection1{size:29.7cm 21cm; mso-page-orientation:landscape; margin:1.2cm 1.2cm 1.2cm 1.2cm}';
+  h += 'div.WordSection1{page:WordSection1}';
+  h += '@page{size:29.7cm 21cm; margin:1.2cm}';
   h += 'body{font-family:"Times New Roman",serif; font-size:11pt}';
   h += 'h1{font-size:13pt; text-align:center; margin:0 0 4pt}';
   h += 'p.sub{text-align:center; font-size:11pt; margin:0 0 10pt}';
@@ -1153,7 +1160,7 @@ function exportSmart(){
   h += 'th{background:#e6ebfb; font-weight:bold; text-align:center; font-size:8pt}';
   h += 'td.c{text-align:center; white-space:nowrap}';
   h += 'tr.blk td{background:#f2f5f8; font-weight:bold; text-transform:uppercase; font-size:8pt}';
-  h += '</style></head><body>';
+  h += '</style></head><body><div class="WordSection1">';
 
   h += '<h1>SMART ENU · Выполнение оперативного плана за 1 полугодие 2026 года</h1>';
   h += '<p class="sub">Институт цифровых наук и искусственного интеллекта · ' + esc(ruDate()) + '</p>';
@@ -1185,6 +1192,7 @@ function exportSmart(){
   });
   h += '</table>';
 
+  h += '</div></body></html>';
   downloadFile("﻿" + h, "SMART-ENU-оперплан-ИЦН-" + new Date().toISOString().slice(0,10) + ".doc", "application/msword");
 }
 
