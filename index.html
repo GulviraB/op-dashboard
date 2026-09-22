@@ -203,9 +203,11 @@ select:focus,input.txt:focus{outline:2px solid var(--accent); outline-offset:1px
   font-size:13px; color:var(--muted)}
 .meta-line b{color:var(--ink2); font-weight:600}
 .banner{background:var(--warn-soft); color:var(--warn); border-radius:10px; padding:10px 14px; font-size:12.5px; margin-top:14px; font-weight:500}
+.entry-row.inst,.colhead.inst{grid-template-columns:minmax(200px,1fr) 2fr 1.1fr}
 @media (max-width:760px){
   .entry-row,.colhead{grid-template-columns:1fr 78px 78px; }
   .entry-row .st,.entry-row .note,.colhead .c4,.colhead .c5{display:none}
+  .entry-row.inst,.colhead.inst{grid-template-columns:1fr}
   h1{font-size:18px}
 }
 </style>
@@ -233,6 +235,7 @@ img{max-width:100%}
         <button class="tab" role="tab" id="tab-entry" aria-selected="false" data-view="entry">Ввод по кафедре</button>
       </div>
       <div class="io"><button class="btn btn-main" id="btn-report" type="button">Отчёт</button>
+        <button class="btn btn-main" id="btn-smart" type="button">SMART ENU</button>
         <button class="btn" id="btn-export" type="button">Выгрузить</button><button class="btn" id="btn-csv" type="button">CSV</button><label class="btn" for="file-import">Загрузить</label><input type="file" id="file-import" accept=".json,application/json" hidden></div>
       <div class="savebadge" id="savebadge"><span class="dot" id="savedot"></span><span id="savetext">загрузка…</span></div>
     </div>
@@ -305,7 +308,9 @@ const DEPTS = [
 const API_URL = "";
 
 let state = {};                // {deptId: {indId: {plan, fact, note, docs}}}
+const INST = {id:"inst", n:"Институт — расчёт и сводный документ (SMART ENU)", s:"Институт"};
 DEPTS.forEach(d => state[d.id] = {});
+state[INST.id] = {};
 let currentView = "inst";
 let currentDept = DEPTS[0].id;
 const pendingTimers = {};
@@ -542,21 +547,44 @@ function renderMatrix(){
 /* ================== РЕНДЕР: ВВОД ПО КАФЕДРЕ ================== */
 
 function renderEntry(){
-  const p = deptProgress(currentDept);
+  const isInst = currentDept === INST.id;
+  const p = isInst ? null : deptProgress(currentDept);
+  const opts = [INST].concat(DEPTS);
+
   let html = `<div class="entry-head">
-    <label for="deptsel" style="font-weight:600">Кафедра</label>
-    <select id="deptsel">${DEPTS.map(d => `<option value="${d.id}"${d.id===currentDept?" selected":""}>${d.n}</option>`).join("")}</select>
-    <span style="color:var(--muted); font-size:13.5px">заполнено показателей: <b class="num">${p.counted}</b> из ${IND.length} · выполнено <b class="num">${p.done}</b></span>
-  </div>
-  <div class="hint">План кафедры можно оставить пустым — тогда статус считается от планового значения института.</div>
-  <div class="panel">
-    <div class="colhead"><span>Показатель</span><span class="r">План</span><span class="r">Факт</span><span class="r c4">Статус</span><span class="c5">Примечание и ссылка на документы</span></div>`;
+    <label for="deptsel" style="font-weight:600">Раздел</label>
+    <select id="deptsel">${opts.map(d => `<option value="${d.id}"${d.id === currentDept ? " selected" : ""}>${d.n}</option>`).join("")}</select>
+    <span style="color:var(--muted); font-size:13.5px">${isInst
+      ? "эти два поля попадают в отчёт SMART ENU"
+      : `заполнено показателей: <b class="num">${p.counted}</b> из ${IND.length} · выполнено <b class="num">${p.done}</b>`}</span>
+  </div>`;
+
+  html += isInst
+    ? `<div class="hint">«Результат» — словесный расчёт показателя, например: Штатных ППС, вовлечённых в НИР — 54 чел. Всего штатных ППС — 157 чел. H = G ÷ F × 100 = 54 ÷ 157 × 100 = 34,4%. «Подтверждающий документ» — ссылка на сводную папку по кафедрам.</div>`
+    : `<div class="hint">План кафедры можно оставить пустым — тогда статус считается от планового значения института.</div>`;
+
+  html += `<div class="panel">`;
+  html += isInst
+    ? `<div class="colhead inst"><span>Показатель</span><span>Результат (расчёт)</span><span>Подтверждающий документ</span></div>`
+    : `<div class="colhead"><span>Показатель</span><span class="r">План</span><span class="r">Факт</span><span class="r c4">Статус</span><span class="c5">Примечание и ссылка на документы</span></div>`;
 
   BLOCKS.forEach(b => {
     html += `<div style="padding:9px 14px; background:var(--accent-soft); color:var(--accent); font-family:'Golos Text',sans-serif;
       font-weight:700; font-size:12.5px; letter-spacing:.08em; text-transform:uppercase">${b.name}</div>`;
     IND.filter(i => i.b === b.id).forEach(i => {
       const c = cellOf(currentDept, i.id);
+      if (isInst){
+        const r = resolved(i);
+        const ph = i.u === "pct"
+          ? "Числитель — … . Знаменатель — … . H = G ÷ F × 100 = … ÷ … × 100 = …%"
+          : "Значение и расшифровка: что именно учтено";
+        html += `<div class="entry-row inst" data-ind="${i.id}">
+          <div class="lbl">${i.n}<small>${i.um} · план ${fmt(i.plan, i.u)} · уточнённый факт ${fmt(r.val, i.u)}</small></div>
+          <input class="txt" id="ec_${i.id}" placeholder="${ph}" value="${(c.calc || "").replace(/"/g,"&quot;")}" aria-label="Результат: ${i.n}">
+          <input class="txt" id="ei_${i.id}" placeholder="ссылка на сводную папку по кафедрам" value="${(c.docs || "").replace(/"/g,"&quot;")}" aria-label="Подтверждающий документ: ${i.n}">
+        </div>`;
+        return;
+      }
       const plan = (c.plan === undefined || c.plan === null) ? "" : c.plan;
       const fact = (c.fact === undefined || c.fact === null) ? "" : c.fact;
       const st = statusOf(plan === "" ? i.plan : Number(plan), fact === "" ? null : Number(fact));
@@ -580,6 +608,16 @@ function renderEntry(){
   });
 
   IND.forEach(i => {
+    if (isInst){
+      const refreshInst = () => {
+        const c = cellOf(INST.id, i.id);
+        c.calc = document.getElementById("ec_" + i.id).value;
+        c.docs = document.getElementById("ei_" + i.id).value.trim();
+        queueSave(INST.id);
+      };
+      ["ec_","ei_"].forEach(pre => document.getElementById(pre + i.id).addEventListener("input", refreshInst));
+      return;
+    }
     const refresh = () => {
       const c = cellOf(currentDept, i.id);
       const pv = document.getElementById("ep_" + i.id).value.replace(",", ".").trim();
@@ -610,7 +648,7 @@ function setSaveState(kind, text){
 function persist(){
   try { localStorage.setItem(LS_KEY, JSON.stringify({savedAt: new Date().toISOString(), state: state})); } catch (e) {}
   if (!API_URL){ setSaveState("on", "сохранено в браузере"); dirty.clear(); return; }
-  const ids = dirty.size ? Array.from(dirty) : DEPTS.map(d => d.id);
+  const ids = dirty.size ? Array.from(dirty) : DEPTS.map(d => d.id).concat([INST.id]);
   const depts = {};
   ids.forEach(id => depts[id] = state[id] || {});
   fetch(API_URL, {method: "POST", headers: {"Content-Type": "text/plain;charset=utf-8"},
@@ -636,7 +674,7 @@ function loadLocal(){
     if (!raw) return false;
     const data = JSON.parse(raw);
     if (!data || !data.state) return false;
-    DEPTS.forEach(d => { if (data.state[d.id]) state[d.id] = data.state[d.id]; });
+    [INST].concat(DEPTS).forEach(d => { if (data.state[d.id]) state[d.id] = data.state[d.id]; });
     return true;
   } catch (e) { return false; }
 }
@@ -647,7 +685,7 @@ async function loadRemote(){
     const url = API_URL + (API_URL.indexOf("?") < 0 ? "?" : "&") + "t=" + Date.now();
     const data = await (await fetch(url)).json();
     if (!data || !data.ok || !data.state) return false;
-    DEPTS.forEach(d => { if (data.state[d.id]) state[d.id] = data.state[d.id]; });
+    [INST].concat(DEPTS).forEach(d => { if (data.state[d.id]) state[d.id] = data.state[d.id]; });
     return true;
   } catch (e) { return false; }
 }
@@ -740,6 +778,59 @@ function exportReport(){
   downloadFile("\ufeff" + h, "Отчёт-оперплан-ИЦН-" + new Date().toISOString().slice(0,10) + ".doc", "application/msword");
 }
 
+function exportSmart(){
+  let h = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">';
+  h += '<head><meta charset="utf-8"><title>SMART ENU</title><style>';
+  h += '@page{size:A4 landscape; margin:1.2cm}';
+  h += 'body{font-family:"Times New Roman",serif; font-size:11pt}';
+  h += 'h1{font-size:13pt; text-align:center; margin:0 0 4pt}';
+  h += 'p.sub{text-align:center; font-size:11pt; margin:0 0 10pt}';
+  h += 'table{border-collapse:collapse; width:100%; font-size:8.5pt}';
+  h += 'th,td{border:1px solid #000; padding:3pt 4pt; vertical-align:top}';
+  h += 'th{background:#e6ebfb; font-weight:bold; text-align:center; font-size:8pt}';
+  h += 'td.c{text-align:center; white-space:nowrap}';
+  h += 'tr.blk td{background:#f2f5f8; font-weight:bold; text-transform:uppercase; font-size:8pt}';
+  h += '</style></head><body>';
+
+  h += '<h1>SMART ENU · Выполнение оперативного плана за 1 полугодие 2026 года</h1>';
+  h += '<p class="sub">Институт цифровых наук и искусственного интеллекта · ' + esc(ruDate()) + '</p>';
+
+  h += '<table><tr><th style="width:20%">Показатель</th><th>План</th><th>Факт мониторинга</th><th>Кафедры</th>' +
+       '<th>Уточнённый факт</th><th>%</th><th>Статус</th><th style="width:30%">Результат</th>' +
+       '<th style="width:18%">Подтверждающий документ</th></tr>';
+
+  BLOCKS.forEach(b => {
+    const list = IND.filter(i => i.b === b.id);
+    if (!list.length) return;
+    h += '<tr class="blk"><td colspan="9">' + esc(b.name) + '</td></tr>';
+    list.forEach(i => {
+      const r = resolved(i);
+      const a = aggregate(i);
+      const st = statusOf(i.plan, r.val);
+      const pc = pctOf(i.plan, r.val);
+      const ic = cellOf(INST.id, i.id);
+      const calc = (ic.calc && ic.calc.trim()) ? ic.calc : (i.note || "—");
+      let doc = (ic.docs && ic.docs.trim()) ? ic.docs : "";
+      if (!doc){
+        const links = DEPTS.map(d => cellOf(d.id, i.id).docs).filter(x => x && x.trim());
+        doc = links.length ? links.join("  ") : "";
+      }
+      h += '<tr><td>' + esc(i.n) + ' <i>(' + esc(i.um) + ')</i></td>' +
+           '<td class="c">' + fmt(i.plan, i.u) + '</td>' +
+           '<td class="c">' + fmt(i.fact, i.u) + '</td>' +
+           '<td class="c">' + (a.fact === null ? "—" : fmt(a.fact, i.u) + " / " + a.filled + " каф.") + '</td>' +
+           '<td class="c"><b>' + fmt(r.val, i.u) + '</b>' + (r.src === "кафедры" ? " (каф.)" : "") + '</td>' +
+           '<td class="c">' + (pc === null ? "—" : pc + "%") + '</td>' +
+           '<td class="c">' + STATUS_LABEL[st] + '</td>' +
+           '<td>' + esc(calc) + '</td>' +
+           '<td>' + (doc ? '<a href="' + esc(doc) + '">' + esc(doc) + '</a>' : "—") + '</td></tr>';
+    });
+  });
+  h += '</table>';
+
+  downloadFile("﻿" + h, "SMART-ENU-оперплан-ИЦН-" + new Date().toISOString().slice(0,10) + ".doc", "application/msword");
+}
+
 function downloadFile(text, filename, type){
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([text], {type: type + ";charset=utf-8"}));
@@ -810,6 +901,7 @@ document.querySelectorAll(".tab").forEach(t => {
 });
 
 document.getElementById("btn-report").addEventListener("click", exportReport);
+document.getElementById("btn-smart").addEventListener("click", exportSmart);
 document.getElementById("btn-export").addEventListener("click", exportJSON);
 document.getElementById("btn-csv").addEventListener("click", exportCSV);
 document.getElementById("file-import").addEventListener("change", e => {
