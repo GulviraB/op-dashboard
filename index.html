@@ -172,7 +172,11 @@ select,input.txt{
   border:1px solid var(--line-strong); border-radius:8px; padding:8px 11px;
 }
 select:focus,input.txt:focus{outline:2px solid var(--accent); outline-offset:1px}
-.entry-row{display:grid; grid-template-columns:1fr 100px 100px 110px 1fr; gap:10px; align-items:center;
+.gf{display:grid; grid-template-columns:1fr 1fr; gap:4px}
+.gf .numf{padding:6px 6px}
+.gfout{grid-column:span 2; text-align:right; font-family:"IBM Plex Mono",monospace;
+  font-size:12.5px; color:var(--ink2); font-variant-numeric:tabular-nums}
+.entry-row{display:grid; grid-template-columns:1fr 100px 118px 110px 1fr; gap:10px; align-items:center;
   padding:11px 14px; border-bottom:1px solid var(--line)}
 .entry-row:last-child{border-bottom:0}
 .entry-row .note{display:grid; gap:6px}
@@ -180,7 +184,7 @@ select:focus,input.txt:focus{outline:2px solid var(--accent); outline-offset:1px
 .entry-row .lbl small{display:block; color:var(--muted); font-size:12.5px; margin-top:1px}
 .entry-row input.txt{width:100%; padding:7px 10px; font-size:14.5px}
 .entry-row input.numf{text-align:right; font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums}
-.colhead{display:grid; grid-template-columns:1fr 100px 100px 110px 1fr; gap:10px; padding:8px 14px;
+.colhead{display:grid; grid-template-columns:1fr 100px 118px 110px 1fr; gap:10px; padding:8px 14px;
   font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); font-weight:600;
   border-bottom:1px solid var(--line-strong); background:var(--surface2); border-radius:12px 12px 0 0}
 .colhead .r{text-align:right}
@@ -358,17 +362,24 @@ function pctOf(plan, fact, unit){
 /* агрегат по кафедрам для одного показателя */
 function aggregate(ind){
   const facts = [], plans = [];
+  let sg = 0, sf = 0, gfn = 0;
   DEPTS.forEach(d => {
     const c = cellOf(d.id, ind.id);
     if (c.fact !== undefined && c.fact !== null && c.fact !== "") facts.push(Number(c.fact));
     if (c.plan !== undefined && c.plan !== null && c.plan !== "") plans.push(Number(c.plan));
+    const g = numOrNull(c.g), f = numOrNull(c.f);
+    if (g !== null && f) { sg += g; sf += f; gfn++; }
   });
   const agg = (arr) => {
     if (!arr.length) return null;
     if (ind.u === "pct") return arr.reduce((a,b)=>a+b,0)/arr.length;
     return arr.reduce((a,b)=>a+b,0);
   };
-  return {fact: agg(facts), plan: agg(plans), filled: facts.length};
+  /* для долей правильная свёртка — сумма числителей на сумму знаменателей,
+     а не среднее процентов по кафедрам */
+  if (ind.u === "pct" && gfn)
+    return {fact: sg / sf * 100, plan: agg(plans), filled: gfn, sg: sg, sf: sf, exact: true};
+  return {fact: agg(facts), plan: agg(plans), filled: facts.length, sg: null, sf: null, exact: false};
 }
 
 function deptProgress(deptId){
@@ -572,12 +583,12 @@ function renderEntry(){
 
   html += isInst
     ? `<div class="hint">Для показателей в процентах впишите числитель <b>G</b> и знаменатель <b>F</b> — расчёт соберётся сам в виде «Штатных ППС, вовлечённых в НИР - 54 чел. / Всего штатных ППС - 157 чел. / H = G ÷ F × 100 = 54 ÷ 157 × 100 = 34,4%». Для количественных показателей расчёт подставляется из уточнённого факта, при необходимости перепишите его вручную.</div>`
-    : `<div class="hint">План кафедры можно оставить пустым — тогда статус считается от планового значения института.</div>`;
+    : `<div class="hint">План кафедры можно оставить пустым — тогда статус считается от планового значения института. Для показателей в процентах вносите два числа: <b>G</b> — числитель (например, штатных ППС, вовлечённых в НИР) и <b>F</b> — знаменатель (всего штатных ППС). Доля посчитается сама, а по институту сложатся числители и знаменатели, а не средний процент.</div>`;
 
   html += `<div class="panel">`;
   html += isInst
     ? `<div class="colhead inst"><span>Показатель</span><span class="r">G</span><span class="r">F</span><span>Результат</span><span>Подтверждающий документ</span></div>`
-    : `<div class="colhead"><span>Показатель</span><span class="r">План</span><span class="r">Факт</span><span class="r c4">Статус</span><span class="c5">Примечание и ссылка на документы</span></div>`;
+    : `<div class="colhead"><span>Показатель</span><span class="r">План</span><span class="r">Факт · G / F</span><span class="r c4">Статус</span><span class="c5">Примечание и ссылка на документы</span></div>`;
 
   BLOCKS.forEach(b => {
     html += `<div style="padding:9px 14px; background:var(--accent-soft); color:var(--accent); font-family:'Golos Text',sans-serif;
@@ -609,11 +620,21 @@ function renderEntry(){
       const plan = (c.plan === undefined || c.plan === null) ? "" : c.plan;
       const fact = (c.fact === undefined || c.fact === null) ? "" : c.fact;
       const st = statusOf(plan === "" ? i.plan : Number(plan), fact === "" ? null : Number(fact));
+      const dPct = i.u === "pct";
+      const L = PCTL[i.id] || {num: "числитель", den: "знаменатель", u: "ед."};
+      const dg = (c.g === undefined || c.g === null) ? "" : c.g;
+      const df = (c.f === undefined || c.f === null) ? "" : c.f;
       html += `<div class="entry-row" data-ind="${i.id}">
-        <div class="lbl">${i.n}<small>${i.um} · план института ${fmt(i.plan, i.u)}</small></div>
-        <input class="txt numf" id="ep_${i.id}" inputmode="decimal" placeholder="${fmt(i.plan,i.u)}" value="${plan}" aria-label="План: ${i.n}">
-        <input class="txt numf" id="ef_${i.id}" inputmode="decimal" placeholder="—" value="${fact}" aria-label="Факт: ${i.n}">
-        <div class="st"><span class="pill ${st}" id="es_${i.id}">${STATUS_LABEL[st]}</span></div>
+        <div class="lbl">${i.n}<small>${i.um} · план института ${fmt(i.plan, i.u)}${dPct ? " · G: " + L.num + " · F: " + L.den : ""}</small></div>
+        <input class="txt numf" id="ep_${i.id}" inputmode="decimal" placeholder="${fmt(i.plan,i.u)}" value="${plan}" aria-label="План: ${i.n}">`;
+      html += dPct
+        ? `<div class="gf">
+             <input class="txt numf" id="eg_${i.id}" inputmode="decimal" placeholder="G" value="${dg}" title="${L.num}" aria-label="G: ${L.num}">
+             <input class="txt numf" id="efd_${i.id}" inputmode="decimal" placeholder="F" value="${df}" title="${L.den}" aria-label="F: ${L.den}">
+             <div class="gfout" id="eo_${i.id}">${fact === "" ? "—" : fmt(fact, i.u)}</div>
+           </div>`
+        : `<input class="txt numf" id="ef_${i.id}" inputmode="decimal" placeholder="—" value="${fact}" aria-label="Факт: ${i.n}">`;
+      html += `<div class="st"><span class="pill ${st}" id="es_${i.id}">${STATUS_LABEL[st]}</span></div>
         <div class="note">
           <input class="txt" id="en_${i.id}" placeholder="комментарий" value="${(c.note||"").replace(/"/g,"&quot;")}" aria-label="Комментарий: ${i.n}">
           <input class="txt" id="ed_${i.id}" placeholder="ссылка на подтверждающие документы (Google Диск)" value="${(c.docs||"").replace(/"/g,"&quot;")}" aria-label="Документы: ${i.n}">
@@ -666,9 +687,18 @@ function renderEntry(){
     const refresh = () => {
       const c = cellOf(currentDept, i.id);
       const pv = document.getElementById("ep_" + i.id).value.replace(",", ".").trim();
-      const fv = document.getElementById("ef_" + i.id).value.replace(",", ".").trim();
-      c.plan = pv === "" ? null : (isFinite(Number(pv)) ? Number(pv) : null);
-      c.fact = fv === "" ? null : (isFinite(Number(fv)) ? Number(fv) : null);
+      c.plan = numOrNull(pv);
+      const egEl = document.getElementById("eg_" + i.id);
+      const efEl = document.getElementById("efd_" + i.id);
+      if (egEl && efEl){
+        c.g = numOrNull(egEl.value.replace(",", ".").trim());
+        c.f = numOrNull(efEl.value.replace(",", ".").trim());
+        c.fact = (c.g !== null && c.f) ? (c.g / c.f * 100) : null;
+        const out = document.getElementById("eo_" + i.id);
+        if (out) out.textContent = c.fact === null ? "—" : fmt(c.fact, i.u);
+      } else {
+        c.fact = numOrNull(document.getElementById("ef_" + i.id).value.replace(",", ".").trim());
+      }
       c.note = document.getElementById("en_" + i.id).value;
       c.docs = document.getElementById("ed_" + i.id).value.trim();
       const st = statusOf(c.plan === null ? i.plan : c.plan, c.fact);
@@ -676,7 +706,10 @@ function renderEntry(){
       badge.className = "pill " + st; badge.textContent = STATUS_LABEL[st];
       queueSave(currentDept);
     };
-    ["ep_","ef_","en_","ed_"].forEach(pre => document.getElementById(pre + i.id).addEventListener("input", refresh));
+    ["ep_","ef_","eg_","efd_","en_","ed_"].forEach(pre => {
+      const el = document.getElementById(pre + i.id);
+      if (el) el.addEventListener("input", refresh);
+    });
   });
 }
 
@@ -845,7 +878,11 @@ function calcText(ind){
   if (c.calc && c.calc.trim()) return c.calc.trim();
   if (ind.u === "pct"){
     const L = PCTL[ind.id] || {num: ind.n, den: "Всего", u: "ед."};
-    const g = numOrNull(c.g), f = numOrNull(c.f);
+    let g = numOrNull(c.g), f = numOrNull(c.f);
+    if (g === null || !f){
+      const a = aggregate(ind);
+      if (a.exact){ g = a.sg; f = a.sf; }
+    }
     if (g === null || !f) return "";
     const ps = (g / f * 100).toFixed(1).replace(".", ",");
     return L.num + " - " + g + " " + L.u + "\n" +
