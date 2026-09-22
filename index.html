@@ -142,9 +142,14 @@ h1{font-size:23px; font-weight:700; letter-spacing:-.01em; line-height:1.2}
 .strip{display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:1px; background:var(--line);
   border:1px solid var(--line); border-radius:12px; overflow:hidden; margin-top:20px;
   margin-right:auto}
-.cell{background:var(--surface); padding:14px 16px}
+.cell{background:var(--surface); padding:14px 16px;
+  display:grid; grid-template-columns:minmax(0,1fr) auto; grid-template-areas:"k v" "s v";
+  align-items:center; column-gap:14px}
+.cell .k{grid-area:k}
+.cell .s{grid-area:s}
 .cell .k{font-size:12px; letter-spacing:.09em; text-transform:uppercase; color:var(--muted); font-weight:600}
-.cell .v{font-family:"Golos Text",sans-serif; font-size:30px; font-weight:700; line-height:1.15; margin-top:5px; font-variant-numeric:tabular-nums}
+.cell .v{grid-area:v; font-family:"Golos Text",sans-serif; font-size:32px; font-weight:700; line-height:1.1;
+  margin-top:0; text-align:right; font-variant-numeric:tabular-nums}
 .cell .s{font-size:13px; color:var(--muted); margin-top:2px}
 .v.ok{color:var(--ok)} .v.warn{color:var(--warn)} .v.risk{color:var(--risk)} .v.nd{color:var(--nd)}
 
