@@ -1249,7 +1249,7 @@ function renderSideLegend(){
   const el = document.getElementById("slegend");
   if (!el) return;
   el.innerHTML = DEPTS.map((d, di) =>
-    `<span><i style="background:var(--c${di + 1})"></i>${d.n.replace(/^Кафедра /, "")}</span>`).join("");
+    `<span title="${d.n}"><i style="background:var(--c${di + 1})"></i>${d.s}</span>`).join("");
 }
 
 document.querySelectorAll(".tab").forEach(t => {
