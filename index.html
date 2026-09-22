@@ -251,7 +251,7 @@ img{max-width:100%}
       </div>
       <div class="io"><button class="btn btn-main" id="btn-report" type="button">Отчёт</button>
         <button class="btn btn-main" id="btn-smart" type="button">SMART ENU</button>
-        <button class="btn" id="btn-export" type="button">Выгрузить</button><button class="btn" id="btn-csv" type="button">CSV</button><label class="btn" for="file-import">Загрузить</label><input type="file" id="file-import" accept=".json,application/json" hidden></div>
+        <button class="btn" id="btn-export" type="button">Выгрузить</button><label class="btn" for="file-import">Загрузить</label><input type="file" id="file-import" accept=".json,application/json" hidden></div>
       <div class="savebadge" id="savebadge"><span class="dot" id="savedot"></span><span id="savetext">загрузка…</span></div>
     </div>
   </div>
@@ -544,7 +544,8 @@ function renderInst(){
     });
   });
   html += `</tbody></table></div></section>`;
-  document.getElementById("view-inst").innerHTML = html + about;
+  document.getElementById("view-inst").innerHTML = html;
+  void about;
 }
 
 /* ================== РЕНДЕР: МАТРИЦА ================== */
@@ -1054,12 +1055,7 @@ async function boot(){
     !API_URL ? "данные сохраняются в браузере"
              : (remote ? "общее хранилище подключено" : "нет связи с хранилищем"));
   render();
-  document.getElementById("foot").innerHTML =
-    "Источник плановых и фактических значений института — сводный отчёт по мониторингу оперативного плана за 1 полугодие 2026 г. " +
-    "Перечень кафедр — финансово-аналитический паспорт института. " +
-    (API_URL
-      ? "Значения, введённые любой кафедрой, сохраняются в общей таблице и видны всем, кто открывает эту страницу. Подтверждающие документы кафедра размещает в своей папке на Google Диске и вставляет ссылку в поле «Документы» у соответствующего показателя."
-      : "Введённые значения хранятся в браузере этого компьютера. Чтобы собрать данные кафедр вместе, попросите каждую кафедру нажать «Выгрузить» и пришлите файлы — кнопка «Загрузить» объединит их в общую картину.");
+  document.getElementById("foot").innerHTML = "";
 }
 
 function render(){
@@ -1082,7 +1078,7 @@ document.querySelectorAll(".tab").forEach(t => {
 document.getElementById("btn-report").addEventListener("click", exportReport);
 document.getElementById("btn-smart").addEventListener("click", exportSmart);
 document.getElementById("btn-export").addEventListener("click", exportJSON);
-document.getElementById("btn-csv").addEventListener("click", exportCSV);
+/* кнопка CSV убрана по просьбе автора; функция exportCSV оставлена на будущее */
 document.getElementById("file-import").addEventListener("change", e => {
   if (e.target.files && e.target.files[0]) importJSON(e.target.files[0]);
   e.target.value = "";
