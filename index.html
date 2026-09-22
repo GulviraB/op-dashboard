@@ -203,7 +203,12 @@ select:focus,input.txt:focus{outline:2px solid var(--accent); outline-offset:1px
   font-size:13px; color:var(--muted)}
 .meta-line b{color:var(--ink2); font-weight:600}
 .banner{background:var(--warn-soft); color:var(--warn); border-radius:10px; padding:10px 14px; font-size:12.5px; margin-top:14px; font-weight:500}
-.entry-row.inst,.colhead.inst{grid-template-columns:minmax(200px,1fr) 2fr 1.1fr}
+.entry-row.inst,.colhead.inst{grid-template-columns:minmax(190px,1fr) 80px 80px 2.2fr 1.1fr; align-items:start}
+.entry-row.inst .dash{color:var(--nd); text-align:center; padding-top:8px}
+.calcwrap{display:grid; gap:5px}
+.calcout{white-space:pre-line; font-size:13.5px; line-height:1.45; background:var(--surface2);
+  border:1px solid var(--line); border-radius:8px; padding:7px 10px; color:var(--ink)}
+.calcin{font-size:13px}
 @media (max-width:760px){
   .entry-row,.colhead{grid-template-columns:1fr 78px 78px; }
   .entry-row .st,.entry-row .note,.colhead .c4,.colhead .c5{display:none}
@@ -555,17 +560,17 @@ function renderEntry(){
     <label for="deptsel" style="font-weight:600">Раздел</label>
     <select id="deptsel">${opts.map(d => `<option value="${d.id}"${d.id === currentDept ? " selected" : ""}>${d.n}</option>`).join("")}</select>
     <span style="color:var(--muted); font-size:13.5px">${isInst
-      ? "эти два поля попадают в отчёт SMART ENU"
+      ? "колонка «Результат» собирается автоматически и попадает в отчёт SMART ENU"
       : `заполнено показателей: <b class="num">${p.counted}</b> из ${IND.length} · выполнено <b class="num">${p.done}</b>`}</span>
   </div>`;
 
   html += isInst
-    ? `<div class="hint">«Результат» — словесный расчёт показателя, например: Штатных ППС, вовлечённых в НИР — 54 чел. Всего штатных ППС — 157 чел. H = G ÷ F × 100 = 54 ÷ 157 × 100 = 34,4%. «Подтверждающий документ» — ссылка на сводную папку по кафедрам.</div>`
+    ? `<div class="hint">Для показателей в процентах впишите числитель <b>G</b> и знаменатель <b>F</b> — расчёт соберётся сам в виде «Штатных ППС, вовлечённых в НИР - 54 чел. / Всего штатных ППС - 157 чел. / H = G ÷ F × 100 = 54 ÷ 157 × 100 = 34,4%». Для количественных показателей расчёт подставляется из уточнённого факта, при необходимости перепишите его вручную.</div>`
     : `<div class="hint">План кафедры можно оставить пустым — тогда статус считается от планового значения института.</div>`;
 
   html += `<div class="panel">`;
   html += isInst
-    ? `<div class="colhead inst"><span>Показатель</span><span>Результат (расчёт)</span><span>Подтверждающий документ</span></div>`
+    ? `<div class="colhead inst"><span>Показатель</span><span class="r">G</span><span class="r">F</span><span>Результат</span><span>Подтверждающий документ</span></div>`
     : `<div class="colhead"><span>Показатель</span><span class="r">План</span><span class="r">Факт</span><span class="r c4">Статус</span><span class="c5">Примечание и ссылка на документы</span></div>`;
 
   BLOCKS.forEach(b => {
@@ -574,14 +579,21 @@ function renderEntry(){
     IND.filter(i => i.b === b.id).forEach(i => {
       const c = cellOf(currentDept, i.id);
       if (isInst){
-        const r = resolved(i);
-        const ph = i.u === "pct"
-          ? "Числитель — … . Знаменатель — … . H = G ÷ F × 100 = … ÷ … × 100 = …%"
-          : "Значение и расшифровка: что именно учтено";
+        const isPct = i.u === "pct";
+        const L = PCTL[i.id] || {num: i.n, den: "Всего", u: "ед."};
+        const g = (c.g === undefined || c.g === null) ? "" : c.g;
+        const f = (c.f === undefined || c.f === null) ? "" : c.f;
         html += `<div class="entry-row inst" data-ind="${i.id}">
-          <div class="lbl">${i.n}<small>${i.um} · план ${fmt(i.plan, i.u)} · уточнённый факт ${fmt(r.val, i.u)}</small></div>
-          <input class="txt" id="ec_${i.id}" placeholder="${ph}" value="${(c.calc || "").replace(/"/g,"&quot;")}" aria-label="Результат: ${i.n}">
-          <input class="txt" id="ei_${i.id}" placeholder="ссылка на сводную папку по кафедрам" value="${(c.docs || "").replace(/"/g,"&quot;")}" aria-label="Подтверждающий документ: ${i.n}">
+          <div class="lbl">${i.n}<small>${i.um} · план ${fmt(i.plan, i.u)} · уточнённый факт ${fmt(resolved(i).val, i.u)}</small></div>`;
+        html += isPct
+          ? `<input class="txt numf" id="eg_${i.id}" inputmode="decimal" placeholder="G" value="${g}" aria-label="Числитель G: ${L.num}" title="${L.num}">
+             <input class="txt numf" id="efd_${i.id}" inputmode="decimal" placeholder="F" value="${f}" aria-label="Знаменатель F: ${L.den}" title="${L.den}">`
+          : `<span class="dash">—</span><span class="dash">—</span>`;
+        html += `<div class="calcwrap">
+            <div class="calcout" id="eo_${i.id}">${(calcText(i) || "—").replace(/&/g,"&amp;").replace(/</g,"&lt;")}</div>
+            <input class="txt calcin" id="ec_${i.id}" placeholder="переписать расчёт вручную (необязательно)" value="${(c.calc || "").replace(/"/g,"&quot;")}" aria-label="Расчёт вручную: ${i.n}">
+          </div>
+          <input class="txt" id="ei_${i.id}" placeholder="ссылка на сводную папку" value="${(c.docs || "").replace(/"/g,"&quot;")}" aria-label="Подтверждающий документ: ${i.n}">
         </div>`;
         return;
       }
@@ -611,11 +623,20 @@ function renderEntry(){
     if (isInst){
       const refreshInst = () => {
         const c = cellOf(INST.id, i.id);
+        const eg = document.getElementById("eg_" + i.id);
+        const ef = document.getElementById("efd_" + i.id);
+        if (eg) c.g = numOrNull(eg.value.replace(",", ".").trim());
+        if (ef) c.f = numOrNull(ef.value.replace(",", ".").trim());
         c.calc = document.getElementById("ec_" + i.id).value;
         c.docs = document.getElementById("ei_" + i.id).value.trim();
+        const out = document.getElementById("eo_" + i.id);
+        out.textContent = calcText(i) || "—";
         queueSave(INST.id);
       };
-      ["ec_","ei_"].forEach(pre => document.getElementById(pre + i.id).addEventListener("input", refreshInst));
+      ["eg_","efd_","ec_","ei_"].forEach(pre => {
+        const el = document.getElementById(pre + i.id);
+        if (el) el.addEventListener("input", refreshInst);
+      });
       return;
     }
     const refresh = () => {
@@ -778,6 +799,40 @@ function exportReport(){
   downloadFile("\ufeff" + h, "Отчёт-оперплан-ИЦН-" + new Date().toISOString().slice(0,10) + ".doc", "application/msword");
 }
 
+/* ---- расчёт доли для отчёта SMART ENU ---- */
+
+const PCTL = {
+  i05: {num:"Штатных ППС, вовлечённых в НИР", den:"Всего штатных ППС", u:"чел."},
+  i11: {num:"Проектов, финансируемых за счёт средств МИО и бизнеса", den:"Всего научных проектов", u:"ед."},
+  i14: {num:"Актуализированных образовательных программ", den:"Всего образовательных программ", u:"ед."},
+  i15: {num:"Трудоустроенных выпускников", den:"Всего выпускников", u:"чел."},
+  i18: {num:"Штатных ППС со степенью", den:"Всего штатных ППС", u:"чел."},
+  i19: {num:"ППС, преподающих на английском языке", den:"Всего штатных ППС", u:"чел."}
+};
+
+function numOrNull(v){
+  if (v === null || v === undefined || v === "") return null;
+  const n = Number(v);
+  return isFinite(n) ? n : null;
+}
+
+function calcText(ind){
+  const c = cellOf(INST.id, ind.id);
+  if (c.calc && c.calc.trim()) return c.calc.trim();
+  if (ind.u === "pct"){
+    const L = PCTL[ind.id] || {num: ind.n, den: "Всего", u: "ед."};
+    const g = numOrNull(c.g), f = numOrNull(c.f);
+    if (g === null || !f) return "";
+    const ps = (g / f * 100).toFixed(1).replace(".", ",");
+    return L.num + " - " + g + " " + L.u + "\n" +
+           L.den + " - " + f + " " + L.u + "\n" +
+           "H = G ÷ F × 100 = " + g + " ÷ " + f + " × 100 = " + ps + "%";
+  }
+  const r = resolved(ind);
+  if (r.val === null) return "";
+  return ind.n + " - " + fmt(r.val, ind.u) + " " + ind.um + ".";
+}
+
 function exportSmart(){
   let h = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">';
   h += '<head><meta charset="utf-8"><title>SMART ENU</title><style>';
@@ -809,7 +864,7 @@ function exportSmart(){
       const st = statusOf(i.plan, r.val);
       const pc = pctOf(i.plan, r.val);
       const ic = cellOf(INST.id, i.id);
-      const calc = (ic.calc && ic.calc.trim()) ? ic.calc : (i.note || "—");
+      const calc = calcText(i) || i.note || "—";
       let doc = (ic.docs && ic.docs.trim()) ? ic.docs : "";
       if (!doc){
         const links = DEPTS.map(d => cellOf(d.id, i.id).docs).filter(x => x && x.trim());
@@ -822,7 +877,7 @@ function exportSmart(){
            '<td class="c"><b>' + fmt(r.val, i.u) + '</b>' + (r.src === "кафедры" ? " (каф.)" : "") + '</td>' +
            '<td class="c">' + (pc === null ? "—" : pc + "%") + '</td>' +
            '<td class="c">' + STATUS_LABEL[st] + '</td>' +
-           '<td>' + esc(calc) + '</td>' +
+           '<td>' + esc(calc).replace(/\n/g, "<br>") + '</td>' +
            '<td>' + (doc ? '<a href="' + esc(doc) + '">' + esc(doc) + '</a>' : "—") + '</td></tr>';
     });
   });
