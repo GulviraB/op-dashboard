@@ -102,7 +102,7 @@ input.refnum{width:72px; text-align:right; padding:4px 8px; font-family:"IBM Ple
   font-size:14.5px; font-variant-numeric:tabular-nums; flex:0 0 72px}
 .sio{display:flex; flex-direction:column; gap:5px; padding:0 4px}
 .sio .btn{width:100%; text-align:center}
-.side .savebadge{padding:14px 11px 0}
+.side .savebadge{padding:9px 4px 0}
 
 /* ---------- шапка рабочей области ---------- */
 .phead{position:sticky; top:0; z-index:20; display:flex; gap:18px; align-items:flex-start; flex-wrap:wrap;
@@ -163,15 +163,18 @@ h2{font-size:17px; font-weight:700; letter-spacing:.01em}
 
 /* ---------- block bars ---------- */
 .blocks{display:grid; grid-template-columns:repeat(auto-fit,minmax(252px,1fr)); gap:12px}
-.block{padding:14px; background:var(--surface); border:1px solid var(--line); border-radius:11px}
-.block-top{display:flex; justify-content:space-between; align-items:baseline; gap:10px}
+.block{padding:14px; background:var(--surface); border:1px solid var(--line); border-radius:11px;
+  display:flex; flex-direction:column}
+.block-top{display:flex; justify-content:space-between; align-items:baseline; gap:10px; min-height:2.5em}
 .block-name{font-family:"Golos Text",sans-serif; font-weight:700; font-size:15px; line-height:1.25}
 .block-pct{font-family:"IBM Plex Mono",monospace; font-size:16.5px; font-weight:600; font-variant-numeric:tabular-nums}
-.bar{height:7px; border-radius:4px; background:var(--nd-soft); margin-top:10px; overflow:hidden; display:flex}
+.bar{height:7px; border-radius:4px; background:var(--nd-soft); margin-top:auto; overflow:hidden; display:flex}
 .bar i{display:block; height:100%}
 .bar i.ok{background:var(--ok)} .bar i.warn{background:var(--warn)} .bar i.risk{background:var(--risk)}
-.legend{display:flex; gap:10px; font-size:12px; color:var(--muted); margin-top:9px; flex-wrap:nowrap; white-space:nowrap}
-.legend span{display:flex; align-items:center; gap:4px; flex:0 0 auto}
+.legend{font-size:13.5px; color:var(--ink2); margin-top:9px; white-space:nowrap}
+.legend b{font-family:"IBM Plex Mono",monospace; font-size:15px; font-variant-numeric:tabular-nums}
+.legend .lg-ok{color:var(--ok)}
+.legend .lg-all{color:var(--warn)}
 .sw{width:9px; height:9px; border-radius:2px; display:inline-block}
 .sw.ok{background:var(--ok)} .sw.warn{background:var(--warn)} .sw.risk{background:var(--risk)} .sw.nd{background:var(--nd)}
 
@@ -616,12 +619,7 @@ function renderInst(){
       <div class="bar">
         <i class="ok" style="width:${p(c.ok)}"></i><i class="warn" style="width:${p(c.warn)}"></i><i class="risk" style="width:${p(c.risk)}"></i>
       </div>
-      <div class="legend">
-        <span><i class="sw ok"></i>${c.ok} выполнено</span>
-        <span><i class="sw warn"></i>${c.warn} частично</span>
-        <span><i class="sw risk"></i>${c.risk} риск</span>
-        <span><i class="sw nd"></i>${c.nd} нет данных</span>
-      </div></div>`;
+      <div class="legend">Выполнено <b class="lg-ok">${c.ok}</b> из <b class="lg-all">${list.length}</b></div></div>`;
   });
   html += `</div></section>`;
 
