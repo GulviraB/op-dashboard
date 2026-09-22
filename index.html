@@ -906,10 +906,11 @@ function calcText(ind){
     if (v !== null) parts.push({s: d.s, v: v});
   });
   const sum = parts.reduce((a, b) => a + b.v, 0);
-  let t = ind.n + " - " + fmt(r.val, ind.u) + " " + ind.um + ".";
+  const dot = (x) => /\.$/.test(x) ? x : x + ".";
+  let t = dot(ind.n + " - " + fmt(r.val, ind.u) + " " + ind.um);
   if (parts.length > 1 && r.src === "кафедры" && sum === Number(r.val)){
     t += "\n" + parts.map(x => x.s + " - " + x.v).join("; ") + "." +
-         "\nH = " + parts.map(x => x.v).join(" + ") + " = " + sum + " " + ind.um + ".";
+         "\nH = " + dot(parts.map(x => x.v).join(" + ") + " = " + sum + " " + ind.um);
   }
   return t;
 }
