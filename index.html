@@ -19,6 +19,7 @@
   --risk:#b3352c; --risk-soft:#fbe6e4;
   --nd:#8a93a3; --nd-soft:#eceff4;
   --hm-ok:#1f9d55; --hm-warn:#eaa32a; --hm-low:#ef8a6f; --hm-zero:#d9453a; --hm-nd:#c7cdd6;
+  --zone-low:#fdeeec; --zone-mid:#fdf5e6; --zone-ok:#e9f6ef;
   --shadow:0 1px 2px rgba(20,24,33,.06), 0 8px 24px -16px rgba(20,24,33,.35);
 }
 @media (prefers-color-scheme: dark){
@@ -261,6 +262,21 @@ select:focus,input.txt:focus{outline:2px solid var(--accent); outline-offset:1px
 .colhead .r{text-align:right}
 
 .deptbars{display:grid; gap:9px}
+.deptchart{display:grid; grid-template-columns:minmax(120px,190px) minmax(0,1fr); gap:9px 16px; align-items:center}
+.dc-lab{text-align:right; font-size:15px; line-height:1.25; color:var(--ink)}
+.dc-plot{position:relative; height:34px; display:flex; align-items:center; padding-right:58px;
+  background:linear-gradient(to right, var(--zone-low) 0 50%, var(--zone-mid) 50% 80%, var(--zone-ok) 80% 100%)}
+.dc-plot::after{content:""; position:absolute; inset:0; pointer-events:none;
+  background:repeating-linear-gradient(to right, transparent 0 calc(20% - 1px), var(--line) calc(20% - 1px), var(--line) 20%)}
+.dc-bar{height:20px; border-radius:0 3px 3px 0; min-width:2px; position:relative; z-index:1; flex:0 0 auto}
+.dc-val{position:relative; z-index:2; margin-left:9px; white-space:nowrap; color:var(--ink);
+  font-family:"IBM Plex Mono",monospace; font-weight:700; font-size:15.5px; font-variant-numeric:tabular-nums}
+.dc-axis{display:grid; grid-template-columns:repeat(6,1fr); margin-left:206px; margin-top:6px;
+  font-size:12px; color:var(--muted); font-family:"IBM Plex Mono",monospace}
+.dc-axis span:first-child{text-align:left}
+.dc-axis span{text-align:center}
+.dc-axis span:last-child{text-align:right}
+@media (max-width:720px){.deptchart{grid-template-columns:minmax(90px,110px) minmax(0,1fr)} .dc-axis{margin-left:126px}}
 .deptbar{display:grid; grid-template-columns:minmax(180px,1fr) 1fr 104px; gap:12px; align-items:center; font-size:15.5px}
 .deptbar .track{height:9px; background:var(--nd-soft); border-radius:5px; overflow:hidden}
 .deptbar .track i{display:block; height:100%; background:var(--accent); border-radius:5px}
@@ -626,17 +642,22 @@ function renderInst(){
   // прогресс заполнения по кафедрам
   html += `<section><div class="sec-head"><h2>Заполнение данных по кафедрам</h2>
     <span class="sec-note">доля показателей со статусом «выполнено» среди заполненных</span></div>
-    <div class="panel" style="padding:16px"><div class="deptbars">`;
-  DEPTS.forEach((d, di) => {
+    <div class="panel" style="padding:18px 20px 14px"><div class="deptchart">`;
+  const rows = DEPTS.map((d, di) => {
     const p = deptProgress(d.id);
-    const col = "var(--c" + (di + 1) + ")";
-    html += `<div class="deptbar">
-      <span><i class="dept-dot" style="background:${col}"></i>${d.n}</span>
-      <span class="track"><i style="width:${p.pct}%; background:${col}"></i></span>
-      <span class="pc">${p.counted ? p.done + "/" + p.counted + " · " + p.pct + "%" : "—"}</span>
-    </div>`;
+    return {d: d, col: "var(--c" + (di + 1) + ")", p: p,
+            val: p.counted ? (p.done / p.counted * 100) : null};
+  }).sort((a, b) => (b.val === null ? -1 : b.val) - (a.val === null ? -1 : a.val));
+
+  rows.forEach(r => {
+    const w = r.val === null ? 0 : Math.max(r.val, 1.2);
+    const txt = r.val === null ? "—" : r.val.toFixed(1).replace(".", ",");
+    html += `<div class="dc-lab">${r.d.n.replace(/^Кафедра /, "")}</div>
+      <div class="dc-plot"><i class="dc-bar" style="width:${w}%; background:${r.col}"></i><b class="dc-val">${txt}</b></div>`;
   });
-  html += `</div></div></section>`;
+  html += `</div>
+    <div class="dc-axis"><span>0</span><span>20</span><span>40</span><span>60</span><span>80</span><span>100 %</span></div>
+    </div></section>`;
 
   // таблица показателей института
   html += `<section><div class="sec-head"><h2>Показатели оперативного плана</h2></div>
