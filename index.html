@@ -140,9 +140,9 @@ tr.blockrow td{
   background:var(--accent-soft); color:var(--accent); font-family:"Golos Text",sans-serif; font-weight:700;
   font-size:12.5px; letter-spacing:.08em; text-transform:uppercase; padding:9px 12px;
 }
-td.name{min-width:340px; max-width:560px; font-size:15.5px; line-height:1.45}
+td.name{min-width:300px; max-width:520px; font-size:15.5px; line-height:1.45}
 td.name .unit{color:var(--muted); font-size:12.5px}
-td.n{text-align:right; font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; white-space:nowrap}
+td.n{text-align:left; font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; white-space:nowrap}
 .pill{display:inline-block; padding:3px 9px; border-radius:20px; font-size:12.5px; font-weight:600; white-space:nowrap}
 .pill.ok{background:var(--ok-soft); color:var(--ok)}
 .pill.warn{background:var(--warn-soft); color:var(--warn)}
@@ -178,7 +178,7 @@ input.cellinput.hm.hm-nd{color:#4a5464}
 input.cellinput.hm.hm-nd::placeholder{color:#4a5464}
 input.cellinput.hm:hover{filter:brightness(1.08); border-color:transparent}
 input.cellinput.hm:focus{outline:none; border-color:var(--ink); box-shadow:0 0 0 3px var(--accent-soft)}
-td.total{text-align:right; font-family:"IBM Plex Mono",monospace; font-weight:600; background:var(--surface2); font-variant-numeric:tabular-nums}
+td.total{text-align:left; font-family:"IBM Plex Mono",monospace; font-weight:600; background:var(--surface2); font-variant-numeric:tabular-nums}
 
 /* ---------- entry view ---------- */
 .entry-head{display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:14px}
@@ -535,9 +535,9 @@ function renderInst(){
   html += `<section><div class="sec-head"><h2>Показатели оперативного плана</h2>
     <span class="sec-note">Цветные значки в колонке «Документы» ведут в папку кафедры с подтверждающими материалами. «Факт мониторинга» — сводный отчёт за 1 полугодие 2026 г. «Кафедры» — сумма (для количеств) или среднее (для долей) внесённых значений. % и статус считаются по большему из этих двух значений</span></div>
     <div class="panel scroll"><table><thead><tr>
-      <th>Показатель</th><th style="text-align:right">План</th><th style="text-align:right">Факт мониторинга</th>
-      <th style="text-align:right">Кафедры</th>
-      <th style="text-align:right">%</th><th>Статус</th><th>Документы</th><th>Комментарий</th>
+      <th>Показатель</th><th>План</th><th>Факт мониторинга</th>
+      <th>Кафедры</th>
+      <th>%</th><th>Статус</th><th>Документы</th><th>Комментарий</th>
     </tr></thead><tbody>`;
   BLOCKS.forEach(b => {
     html += `<tr class="blockrow"><td colspan="8">${b.name}</td></tr>`;
@@ -601,9 +601,9 @@ function renderMatrix(){
     <span><i class="sw hm-nd"></i>нет данных</span>
   </div>
   <div class="panel scroll"><table class="matrix"><thead><tr>
-    <th>Показатель</th><th style="text-align:right">План инст.</th>`;
+    <th>Показатель</th><th>План инст.</th>`;
   DEPTS.forEach((d, di) => html += `<th class="dept" title="${d.n}" style="color:var(--c${di + 1})">${d.s}</th>`);
-  html += `<th style="text-align:right">Итого</th></tr></thead><tbody>`;
+  html += `<th>Итого</th></tr></thead><tbody>`;
 
   BLOCKS.forEach(b => {
     html += `<tr class="blockrow"><td colspan="${DEPTS.length + 3}">${b.name}</td></tr>`;
