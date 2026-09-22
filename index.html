@@ -652,7 +652,7 @@ function renderInst(){
   rows.forEach(r => {
     const w = r.val === null ? 0 : Math.max(r.val, 1.2);
     const txt = r.val === null ? "—" : r.val.toFixed(1).replace(".", ",");
-    html += `<div class="dc-lab">${r.d.n.replace(/^Кафедра /, "")}</div>
+    html += `<div class="dc-lab" title="${r.d.n}">${r.d.s}</div>
       <div class="dc-plot"><i class="dc-bar" style="width:${w}%; background:${r.col}"></i><b class="dc-val">${txt}</b></div>`;
   });
   html += `</div>
