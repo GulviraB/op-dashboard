@@ -56,9 +56,9 @@
 body{
   margin:0; background:var(--paper); color:var(--ink);
   font-family:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,sans-serif;
-  font-size:15.5px; line-height:1.55; -webkit-font-smoothing:antialiased;
+  font-size:16.5px; line-height:1.58; -webkit-font-smoothing:antialiased;
 }
-.wrap{max-width:1360px; margin:0 auto; padding-inline:18px; padding-block:0 56px}
+.wrap{max-width:none; margin:0 auto; padding-inline:26px; padding-block:0 56px}
 h1,h2,h3{font-family:"Golos Text","IBM Plex Sans",sans-serif; margin:0; text-wrap:balance}
 .num{font-family:"IBM Plex Mono",ui-monospace,monospace; font-variant-numeric:tabular-nums}
 
@@ -68,16 +68,16 @@ header.top{
   background:color-mix(in srgb, var(--paper) 88%, transparent);
   backdrop-filter:blur(10px); border-bottom:1px solid var(--line);
 }
-.top-inner{max-width:1360px; margin:0 auto; padding:14px 18px; display:flex; gap:18px; align-items:flex-end; flex-wrap:wrap}
+.top-inner{max-width:none; margin:0 auto; padding:14px 26px; display:flex; gap:18px; align-items:flex-end; flex-wrap:wrap}
 .eyebrow{font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); font-weight:600}
 h1{font-size:23px; font-weight:700; letter-spacing:-.01em; line-height:1.2}
-.subtitle{color:var(--ink2); font-size:14px; margin-top:2px}
+.subtitle{color:var(--ink2); font-size:15px; margin-top:2px}
 .top-right{margin-left:auto; display:flex; gap:8px; align-items:center; flex-wrap:wrap}
 
 .tabs{display:flex; gap:2px; background:var(--surface); border:1px solid var(--line); border-radius:9px; padding:3px}
 .tab{
   appearance:none; border:0; background:transparent; color:var(--ink2); cursor:pointer;
-  font:inherit; font-weight:600; font-size:14px; padding:8px 14px; border-radius:6px; white-space:nowrap;
+  font:inherit; font-weight:600; font-size:15px; padding:8px 14px; border-radius:6px; white-space:nowrap;
 }
 .tab[aria-selected="true"]{background:var(--accent); color:#fff}
 .tab:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
@@ -116,7 +116,7 @@ h2{font-size:17px; font-weight:700; letter-spacing:.01em}
 @media (max-width:720px){.blocks{grid-template-columns:1fr}}
 .block{padding:14px; background:var(--surface); border:1px solid var(--line); border-radius:11px}
 .block-top{display:flex; justify-content:space-between; align-items:baseline; gap:10px}
-.block-name{font-family:"Golos Text",sans-serif; font-weight:700; font-size:14px; line-height:1.25}
+.block-name{font-family:"Golos Text",sans-serif; font-weight:700; font-size:15px; line-height:1.25}
 .block-pct{font-family:"IBM Plex Mono",monospace; font-size:16.5px; font-weight:600; font-variant-numeric:tabular-nums}
 .bar{height:7px; border-radius:4px; background:var(--nd-soft); margin-top:10px; overflow:hidden; display:flex}
 .bar i{display:block; height:100%}
@@ -139,7 +139,7 @@ tr.blockrow td{
   background:var(--accent-soft); color:var(--accent); font-family:"Golos Text",sans-serif; font-weight:700;
   font-size:12.5px; letter-spacing:.08em; text-transform:uppercase; padding:9px 12px;
 }
-td.name{min-width:320px; max-width:440px; font-size:14.5px; line-height:1.45}
+td.name{min-width:340px; max-width:560px; font-size:15.5px; line-height:1.45}
 td.name .unit{color:var(--muted); font-size:12.5px}
 td.n{text-align:right; font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; white-space:nowrap}
 .pill{display:inline-block; padding:3px 9px; border-radius:20px; font-size:12.5px; font-weight:600; white-space:nowrap}
@@ -157,7 +157,7 @@ table.matrix td.cellv{text-align:right; padding:4px 6px}
 input.cellinput{
   width:100%; min-width:64px; text-align:right; border:1px solid transparent; background:transparent;
   border-radius:6px; padding:5px 7px; color:var(--ink); font-family:"IBM Plex Mono",monospace;
-  font-size:14.5px; font-variant-numeric:tabular-nums;
+  font-size:15.5px; font-variant-numeric:tabular-nums;
 }
 input.cellinput::placeholder{color:var(--nd)}
 input.cellinput:hover{border-color:var(--line-strong); background:var(--surface2)}
@@ -168,7 +168,7 @@ td.total{text-align:right; font-family:"IBM Plex Mono",monospace; font-weight:60
 /* ---------- entry view ---------- */
 .entry-head{display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-bottom:14px}
 select,input.txt{
-  font:inherit; font-size:14.5px; color:var(--ink); background:var(--surface);
+  font:inherit; font-size:15.5px; color:var(--ink); background:var(--surface);
   border:1px solid var(--line-strong); border-radius:8px; padding:8px 11px;
 }
 select:focus,input.txt:focus{outline:2px solid var(--accent); outline-offset:1px}
@@ -180,9 +180,9 @@ select:focus,input.txt:focus{outline:2px solid var(--accent); outline-offset:1px
   padding:11px 14px; border-bottom:1px solid var(--line)}
 .entry-row:last-child{border-bottom:0}
 .entry-row .note{display:grid; gap:6px}
-.entry-row .lbl{font-size:14.5px; line-height:1.45}
+.entry-row .lbl{font-size:15.5px; line-height:1.45}
 .entry-row .lbl small{display:block; color:var(--muted); font-size:12.5px; margin-top:1px}
-.entry-row input.txt{width:100%; padding:7px 10px; font-size:14.5px}
+.entry-row input.txt{width:100%; padding:8px 10px; font-size:15.5px}
 .entry-row input.numf{text-align:right; font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums}
 .colhead{display:grid; grid-template-columns:1fr 100px 118px 110px 1fr; gap:10px; padding:8px 14px;
   font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); font-weight:600;
@@ -190,22 +190,22 @@ select:focus,input.txt:focus{outline:2px solid var(--accent); outline-offset:1px
 .colhead .r{text-align:right}
 
 .deptbars{display:grid; gap:9px}
-.deptbar{display:grid; grid-template-columns:minmax(180px,1fr) 1fr 104px; gap:12px; align-items:center; font-size:14.5px}
+.deptbar{display:grid; grid-template-columns:minmax(180px,1fr) 1fr 104px; gap:12px; align-items:center; font-size:15.5px}
 .deptbar .track{height:9px; background:var(--nd-soft); border-radius:5px; overflow:hidden}
 .deptbar .track i{display:block; height:100%; background:var(--accent); border-radius:5px}
 .deptbar .pc{text-align:right; font-family:"IBM Plex Mono",monospace; font-size:13.5px; font-variant-numeric:tabular-nums; color:var(--ink2)}
 
 .foot{margin-top:34px; padding-top:16px; border-top:1px solid var(--line); color:var(--muted); font-size:13px}
 .hint{background:var(--accent-soft); color:var(--accent); border-radius:10px; padding:11px 15px; font-size:13.5px; margin-bottom:14px}
-.refline{margin:14px 0 0; padding:11px 15px; border:1px solid var(--line); border-radius:10px;
-  background:var(--card); color:var(--ink2); font-size:13.5px; line-height:1.55}
+.refline{margin:14px 0 0; padding:12px 16px; border:1px solid var(--line); border-radius:10px;
+  background:var(--card); color:var(--ink2); font-size:14.5px; line-height:1.55}
 .refline b{color:var(--ink)}
 .about{background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--accent); border-radius:12px;
   padding:16px 18px; margin-top:30px; box-shadow:var(--shadow)}
 .about h2{font-size:17px; margin-bottom:7px}
-.about p{margin:0 0 9px; font-size:14.5px; color:var(--ink2); line-height:1.55; text-align:justify; text-justify:inter-word; hyphens:auto}
+.about p{margin:0 0 9px; font-size:15.5px; color:var(--ink2); line-height:1.55; text-align:justify; text-justify:inter-word; hyphens:auto}
 .about p:last-child{margin-bottom:0}
-.about ol{margin:7px 0 0; padding-left:20px; font-size:14.5px; color:var(--ink2); line-height:1.6; text-align:justify; hyphens:auto}
+.about ol{margin:7px 0 0; padding-left:20px; font-size:15.5px; color:var(--ink2); line-height:1.6; text-align:justify; hyphens:auto}
 .meta-line{display:flex; gap:8px 20px; flex-wrap:wrap; margin-top:12px; padding-top:11px; border-top:1px solid var(--line);
   font-size:13px; color:var(--muted)}
 .meta-line b{color:var(--ink2); font-weight:600}
@@ -518,14 +518,14 @@ function renderInst(){
 
   // таблица показателей института
   html += `<section><div class="sec-head"><h2>Показатели оперативного плана</h2>
-    <span class="sec-note">Цветные значки в колонке «Документы» ведут в папку кафедры с подтверждающими материалами. «Факт мониторинга» — сводный отчёт за 1 полугодие 2026 г. «Кафедры» — сумма (для количеств) или среднее (для долей) внесённых значений. «Уточнённый факт» — большее из двух: именно он определяет % и статус</span></div>
+    <span class="sec-note">Цветные значки в колонке «Документы» ведут в папку кафедры с подтверждающими материалами. «Факт мониторинга» — сводный отчёт за 1 полугодие 2026 г. «Кафедры» — сумма (для количеств) или среднее (для долей) внесённых значений. % и статус считаются по большему из этих двух значений</span></div>
     <div class="panel scroll"><table><thead><tr>
       <th>Показатель</th><th style="text-align:right">План</th><th style="text-align:right">Факт мониторинга</th>
-      <th style="text-align:right">Кафедры</th><th style="text-align:right">Уточнённый факт</th>
+      <th style="text-align:right">Кафедры</th>
       <th style="text-align:right">%</th><th>Статус</th><th>Документы</th><th>Комментарий</th>
     </tr></thead><tbody>`;
   BLOCKS.forEach(b => {
-    html += `<tr class="blockrow"><td colspan="9">${b.name}</td></tr>`;
+    html += `<tr class="blockrow"><td colspan="8">${b.name}</td></tr>`;
     IND.filter(i => i.b === b.id).forEach(i => {
       const r = resolved(i);
       const st = statusOf(i.plan, r.val);
@@ -536,11 +536,10 @@ function renderInst(){
         <td class="n">${fmt(i.plan, i.u)}</td>
         <td class="n" style="color:var(--muted)">${fmt(i.fact, i.u)}</td>
         <td class="n" style="color:var(--${a.fact===null?'nd':'accent'})">${a.fact === null ? "—" : fmt(a.fact, i.u) + " <span style=\"color:var(--muted);font-size:12px\">" + (i.u === "pct" ? "сред. /" : "/") + a.filled + " каф.</span>"}</td>
-        <td class="n" style="font-weight:600">${fmt(r.val, i.u)}${r.src === "кафедры" ? " <span style=\"color:var(--accent);font-size:11.5px\">каф.</span>" : ""}</td>
         <td class="n">${pc === null ? "—" : pc + "%"}</td>
         <td><span class="pill ${st}">${STATUS_LABEL[st]}</span></td>
         <td>${DEPTS.map((d, di) => { const dc = cellOf(d.id, i.id); return dc.docs ? `<a class="doclink" style="background:var(--c${di + 1})" href="${dc.docs}" target="_blank" rel="noopener" title="${d.n}">${di + 1}</a>` : ""; }).join("") || "<span style=\"color:var(--nd)\">—</span>"}</td>
-        <td style="color:var(--muted); font-size:13.5px">${i.note}</td>
+        <td style="color:var(--muted); font-size:14.5px">${i.note}</td>
       </tr>`;
     });
   });
@@ -626,7 +625,7 @@ function renderEntry(){
         const g = (c.g === undefined || c.g === null) ? "" : c.g;
         const f = (c.f === undefined || c.f === null) ? "" : c.f;
         html += `<div class="entry-row inst" data-ind="${i.id}">
-          <div class="lbl">${i.n}<small>${i.um} · план ${fmt(i.plan, i.u)} · уточнённый факт ${fmt(resolved(i).val, i.u)}</small></div>`;
+          <div class="lbl">${i.n}<small>${i.um} · план ${fmt(i.plan, i.u)}${isPct ? " · G: " + L.num + " · F: " + L.den + (STAFF_IND.indexOf(i.id) >= 0 ? " (всего ППС — " + STAFF_TOTAL + ")" : "") : " · уточнённый факт " + fmt(resolved(i).val, i.u)}</small></div>`;
         html += isPct
           ? `<input class="txt numf" id="eg_${i.id}" inputmode="decimal" placeholder="${i.g == null ? "G" : i.g}" value="${g}" aria-label="Числитель G: ${L.num}" title="${L.num}">
              <input class="txt numf" id="efd_${i.id}" inputmode="decimal" placeholder="${STAFF_IND.indexOf(i.id) >= 0 ? STAFF_TOTAL : (i.f == null ? "F" : i.f)}" value="${f}" aria-label="Знаменатель F: ${L.den}" title="${L.den}">`
@@ -888,7 +887,7 @@ function exportReport(){
 
 const PCTL = {
   i05: {num:"Штатных ППС, вовлечённых в НИР", den:"Всего штатных ППС", u:"чел."},
-  i11: {num:"Проектов, финансируемых за счёт средств МИО и бизнеса", den:"Всего научных проектов", u:"ед."},
+  i11: {num:"Проектов, финансируемых за счёт средств МИО и бизнеса", den:"Всего научных проектов", u:"ед.", denFrom:"i06"},
   i14: {num:"Актуализированных образовательных программ", den:"Всего образовательных программ", u:"ед."},
   i15: {num:"Трудоустроенных выпускников", den:"Всего выпускников", u:"чел."},
   i18: {num:"Штатных ППС со степенью", den:"Всего штатных ППС", u:"чел."},
@@ -901,16 +900,37 @@ function numOrNull(v){
   return isFinite(n) ? n : null;
 }
 
+/* знаменатель свода: для кадровых показателей — всего штатных ППС института,
+   для остальных долей — вписанный вручную либо взятый из связанного показателя */
+function instDenom(ind){
+  const f = numOrNull(cellOf(INST.id, ind.id).f);
+  if (f) return f;
+  if (STAFF_IND.indexOf(ind.id) >= 0) return STAFF_TOTAL;
+  const L = PCTL[ind.id];
+  if (L && L.denFrom){
+    const base = IND.find(x => x.id === L.denFrom);
+    if (base){ const rv = resolved(base).val; if (rv) return Number(rv); }
+  }
+  return null;
+}
+
+/* числитель свода: вписанный по институту, иначе сумма количеств по кафедрам */
+function instNumer(ind){
+  const g = numOrNull(cellOf(INST.id, ind.id).g);
+  if (g !== null) return g;
+  let sg = 0, n = 0;
+  DEPTS.forEach(d => {
+    const v = numOrNull(cellOf(d.id, ind.id).g);
+    if (v !== null){ sg += v; n++; }
+  });
+  return n ? sg : null;
+}
+
 function gfOf(ind){
-  const c = cellOf(INST.id, ind.id);
-  let g = numOrNull(c.g), f = numOrNull(c.f);
-  if (g !== null && f) return {g: g, f: f, src: "институт"};
-  /* сумма числителей и знаменателей — только когда цифры дали все кафедры,
-     иначе доля считалась бы по неполному знаменателю */
-  const a = aggregate(ind);
-  if (a.exact && a.filled === DEPTS.length) return {g: a.sg, f: a.sf, src: "кафедры"};
-  g = numOrNull(ind.g); f = numOrNull(ind.f);
-  if (g !== null && f) return {g: g, f: f, src: "мониторинг"};
+  const g = instNumer(ind), f = instDenom(ind);
+  if (g !== null && f) return {g: g, f: f, src: "свод"};
+  const mg = numOrNull(ind.g), mf = numOrNull(ind.f);
+  if (mg !== null && mf) return {g: mg, f: mf, src: "мониторинг"};
   return null;
 }
 
@@ -961,21 +981,19 @@ function exportSmart(){
   h += '<p class="sub">Институт цифровых наук и искусственного интеллекта · ' + esc(ruDate()) + '</p>';
   h += '<p class="sub">Штатный контингент ППС — ' + STAFF_TOTAL + ' чел. · контингент обучающихся — ' + STUDENTS_TOTAL + ' чел.</p>';
 
-  h += '<table><tr><th style="width:20%">Показатель</th><th>План</th><th>Факт мониторинга</th><th>Кафедры</th>' +
-       '<th>Уточнённый факт</th><th>%</th><th>Статус</th><th style="width:30%">Результат</th>' +
-       '<th style="width:18%">Подтверждающий документ</th></tr>';
+  h += '<table><tr><th style="width:30%">Показатель</th><th style="width:8%">План</th>' +
+       '<th style="width:40%">Результат</th>' +
+       '<th style="width:22%">Подтверждающий документ</th></tr>';
 
   BLOCKS.forEach(b => {
     const list = IND.filter(i => i.b === b.id);
     if (!list.length) return;
-    h += '<tr class="blk"><td colspan="9">' + esc(b.name) + '</td></tr>';
+    h += '<tr class="blk"><td colspan="4">' + esc(b.name) + '</td></tr>';
     list.forEach(i => {
-      const r = resolved(i);
-      const a = aggregate(i);
-      const st = statusOf(i.plan, r.val);
-      const pc = pctOf(i.plan, r.val, i.u);
       const ic = cellOf(INST.id, i.id);
-      const calc = calcText(i) || i.note || "—";
+      const calc = calcText(i) ||
+        (i.u === "pct" ? "Укажите G (количество) и F (всего) во вкладке «Институт» — формула соберётся сама"
+                       : (i.note || "—"));
       let doc = (ic.docs && ic.docs.trim()) ? ic.docs : "";
       if (!doc){
         const links = DEPTS.map(d => cellOf(d.id, i.id).docs).filter(x => x && x.trim());
@@ -983,11 +1001,6 @@ function exportSmart(){
       }
       h += '<tr><td>' + esc(i.n) + ' <i>(' + esc(i.um) + ')</i></td>' +
            '<td class="c">' + fmt(i.plan, i.u) + '</td>' +
-           '<td class="c">' + fmt(i.fact, i.u) + '</td>' +
-           '<td class="c">' + (a.fact === null ? "—" : fmt(a.fact, i.u) + (i.u === "pct" ? " сред. / " : " / ") + a.filled + " каф.") + '</td>' +
-           '<td class="c"><b>' + fmt(r.val, i.u) + '</b>' + (r.src === "кафедры" ? " (каф.)" : "") + '</td>' +
-           '<td class="c">' + (pc === null ? "—" : pc + "%") + '</td>' +
-           '<td class="c">' + STATUS_LABEL[st] + '</td>' +
            '<td>' + esc(calc).replace(/\n/g, "<br>") + '</td>' +
            '<td>' + (doc ? '<a href="' + esc(doc) + '">' + esc(doc) + '</a>' : "—") + '</td></tr>';
     });
