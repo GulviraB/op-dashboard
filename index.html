@@ -578,12 +578,12 @@ function hmScore(ind, deptId){
   return pctOf(plan, c.fact, ind.u);
 }
 
-function hmClass(sc){
-  if (sc === null) return "hm hm-nd";
-  if (sc >= 80) return "hm hm-ok";
-  if (sc >= 50) return "hm hm-warn";
-  if (sc >= 1)  return "hm hm-low";
-  return "hm hm-zero";
+/* значение есть — зелёный, ноль — красный, пусто — серый */
+function hmClass(ind, deptId){
+  const c = cellOf(deptId, ind.id);
+  const v = numOrNull(c.fact);
+  if (v === null) return "hm hm-nd";
+  return v > 0 ? "hm hm-ok" : "hm hm-zero";
 }
 
 function hmTitle(ind, dept){
@@ -599,9 +599,7 @@ function hmTitle(ind, dept){
 function renderMatrix(){
   let html = `<div class="hint">Введите фактическое значение показателя по каждой кафедре — данные сохраняются автоматически. Цвет ячейки показывает выполнение к плану. Плановые значения кафедр задаются во вкладке «Ввод по кафедре».</div>
   <div class="hmleg">
-    <span><i class="sw hm-ok"></i>80 и выше</span>
-    <span><i class="sw hm-warn"></i>50–79</span>
-    <span><i class="sw hm-low"></i>1–49</span>
+    <span><i class="sw hm-ok"></i>показатель есть</span>
     <span><i class="sw hm-zero"></i>0 баллов</span>
     <span><i class="sw hm-nd"></i>нет данных</span>
   </div>
@@ -618,7 +616,7 @@ function renderMatrix(){
       DEPTS.forEach(d => {
         const c = cellOf(d.id, i.id);
         const v = (c.fact === undefined || c.fact === null) ? "" : c.fact;
-        const cls = hmClass(hmScore(i, d.id));
+        const cls = hmClass(i, d.id);
         html += `<td class="cellv"><input class="cellinput ${cls}" id="m_${d.id}_${i.id}"
            inputmode="decimal" placeholder="—" value="${v}" title="${hmTitle(i, d).replace(/"/g, "&quot;")}"
            aria-label="${i.n} — ${d.n}" data-d="${d.id}" data-i="${i.id}"></td>`;
@@ -638,7 +636,7 @@ function renderMatrix(){
       c.fact = raw === "" ? null : (isFinite(Number(raw)) ? Number(raw) : null);
       const ind = IND.find(x => x.id === i);
       const dep = DEPTS.find(x => x.id === d);
-      inp.className = "cellinput " + hmClass(hmScore(ind, d));
+      inp.className = "cellinput " + hmClass(ind, d);
       inp.title = hmTitle(ind, dep);
       const a = aggregate(ind);
       const tot = document.getElementById("tot_" + i);
