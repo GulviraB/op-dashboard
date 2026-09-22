@@ -209,6 +209,9 @@ select:focus,input.txt:focus{outline:2px solid var(--accent); outline-offset:1px
 .calcout{white-space:pre-line; font-size:13.5px; line-height:1.45; background:var(--surface2);
   border:1px solid var(--line); border-radius:8px; padding:7px 10px; color:var(--ink)}
 .calcin{font-size:13px}
+.calcrow{display:flex; gap:6px; align-items:center}
+.calcrow .calcin{flex:1}
+.btn.mini{padding:5px 10px; font-size:12px; white-space:nowrap}
 @media (max-width:760px){
   .entry-row,.colhead{grid-template-columns:1fr 78px 78px; }
   .entry-row .st,.entry-row .note,.colhead .c4,.colhead .c5{display:none}
@@ -591,7 +594,10 @@ function renderEntry(){
           : `<span class="dash">—</span><span class="dash">—</span>`;
         html += `<div class="calcwrap">
             <div class="calcout" id="eo_${i.id}">${(calcText(i) || "—").replace(/&/g,"&amp;").replace(/</g,"&lt;")}</div>
-            <input class="txt calcin" id="ec_${i.id}" placeholder="переписать расчёт вручную (необязательно)" value="${(c.calc || "").replace(/"/g,"&quot;")}" aria-label="Расчёт вручную: ${i.n}">
+            <div class="calcrow">
+              <button class="btn mini" type="button" id="eb_${i.id}">Копировать</button>
+              <input class="txt calcin" id="ec_${i.id}" placeholder="переписать расчёт вручную (необязательно)" value="${(c.calc || "").replace(/"/g,"&quot;")}" aria-label="Расчёт вручную: ${i.n}">
+            </div>
           </div>
           <input class="txt" id="ei_${i.id}" placeholder="ссылка на сводную папку" value="${(c.docs || "").replace(/"/g,"&quot;")}" aria-label="Подтверждающий документ: ${i.n}">
         </div>`;
@@ -633,6 +639,21 @@ function renderEntry(){
         out.textContent = calcText(i) || "—";
         queueSave(INST.id);
       };
+      const cb = document.getElementById("eb_" + i.id);
+      if (cb) cb.addEventListener("click", () => {
+        const t = calcText(i);
+        if (!t){ cb.textContent = "нечего копировать"; setTimeout(() => { cb.textContent = "Копировать"; }, 1600); return; }
+        const done = ok => { cb.textContent = ok ? "скопировано" : "не удалось"; setTimeout(() => { cb.textContent = "Копировать"; }, 1600); };
+        if (navigator.clipboard && navigator.clipboard.writeText){
+          navigator.clipboard.writeText(t).then(() => done(true)).catch(() => done(false));
+        } else {
+          const ta = document.createElement("textarea");
+          ta.value = t; ta.style.position = "fixed"; ta.style.opacity = "0";
+          document.body.appendChild(ta); ta.select();
+          let ok = false; try { ok = document.execCommand("copy"); } catch (e) {}
+          ta.remove(); done(ok);
+        }
+      });
       ["eg_","efd_","ec_","ei_"].forEach(pre => {
         const el = document.getElementById(pre + i.id);
         if (el) el.addEventListener("input", refreshInst);
