@@ -73,8 +73,9 @@ h1,h2,h3{font-family:"Golos Text","IBM Plex Sans",sans-serif; margin:0; text-wra
 .bname{font-family:"Golos Text",sans-serif; font-weight:700; font-size:16.5px; line-height:1.2}
 .bsub{font-size:13.5px; color:var(--ink2); line-height:1.35; margin-top:2px}
 .sgroup{font-size:11.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted);
-  font-weight:700; padding:18px 8px 8px}
+  font-weight:700; padding:16px 4px 7px}
 .snav{display:flex; flex-direction:column; gap:2px}
+.sbox{border:1px solid var(--line); border-radius:11px; background:var(--card); padding:8px}
 .tab{
   appearance:none; border:0; background:transparent; color:var(--ink2); cursor:pointer; text-align:left;
   font:inherit; font-weight:600; font-size:15px; padding:9px 11px; border-radius:8px;
@@ -85,10 +86,10 @@ h1,h2,h3{font-family:"Golos Text","IBM Plex Sans",sans-serif; margin:0; text-wra
 .tab[aria-selected="true"]{background:var(--accent-soft); color:var(--accent); box-shadow:inset 3px 0 0 var(--accent)}
 .tab[aria-selected="true"] .ic{color:var(--accent)}
 .tab:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
-.slegend{display:flex; flex-direction:column; gap:7px; padding:4px 11px 0}
+.slegend{display:flex; flex-direction:column; gap:7px; padding:3px 4px}
 .slegend span{display:flex; gap:9px; align-items:flex-start; font-size:14px; color:var(--ink2); line-height:1.3}
 .slegend i{width:13px; height:13px; flex:0 0 13px; border-radius:3px; margin-top:3px}
-.sref{display:flex; flex-direction:column; gap:5px; padding:4px 11px 0}
+.sref{display:flex; flex-direction:column; gap:5px; padding:3px 4px}
 .srow{display:flex; gap:8px; align-items:center; justify-content:space-between;
   font-size:14px; color:var(--ink2); line-height:1.3}
 .srow .lab{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
@@ -318,17 +319,17 @@ img{max-width:100%}
     </div>
 
     <div class="sgroup">Разделы</div>
-    <nav class="snav" role="tablist">
+    <nav class="snav sbox" role="tablist">
       <button class="tab" role="tab" id="tab-inst" aria-selected="true" data-view="inst"><span class="ic">◎</span>Обзор института</button>
       <button class="tab" role="tab" id="tab-matrix" aria-selected="false" data-view="matrix"><span class="ic">▤</span>Кафедры и показатели</button>
       <button class="tab" role="tab" id="tab-entry" aria-selected="false" data-view="entry"><span class="ic">✎</span>Ввод данных</button>
     </nav>
 
     <div class="sgroup">Кафедры</div>
-    <div class="slegend" id="slegend"></div>
+    <div class="slegend sbox" id="slegend"></div>
 
     <div class="sgroup">Контингент</div>
-    <div class="sref" id="sref"></div>
+    <div class="sref sbox" id="sref"></div>
 
     <div class="sgroup">Данные</div>
     <div class="sio">
@@ -636,8 +637,7 @@ function renderInst(){
   html += `</div></div></section>`;
 
   // таблица показателей института
-  html += `<section><div class="sec-head"><h2>Показатели оперативного плана</h2>
-    <span class="sec-note">Цветные значки в колонке «Документы» ведут в папку кафедры с подтверждающими материалами. «Факт мониторинга» — сводный отчёт за 1 полугодие 2026 г. «Кафедры» — сумма (для количеств) или среднее (для долей) внесённых значений. % и статус считаются по большему из этих двух значений</span></div>
+  html += `<section><div class="sec-head"><h2>Показатели оперативного плана</h2></div>
     <div class="panel scroll"><table><thead><tr>
       <th>Показатель</th><th>План</th><th>Факт мониторинга</th>
       <th>Кафедры</th>
@@ -1246,8 +1246,7 @@ function renderSideCfg(){
       <input class="txt refnum" id="cfg_${d.id}" inputmode="numeric" value="${DEPT_STAFF[d.id] == null ? "" : DEPT_STAFF[d.id]}" aria-label="Штатных ППС: ${d.n}"></div>`).join("") +
     `<div class="srow total"><span class="lab">Всего ППС</span><b class="num" id="cfg_total">${staffTotal()}</b></div>` +
     `<div class="srow"><span class="lab">Обучающихся</span>
-      <input class="txt refnum" id="cfg_students" inputmode="numeric" value="${CFG.students == null ? "" : CFG.students}" aria-label="Контингент обучающихся"></div>` +
-    `<div class="srow"><span class="note">Штатные ППС по кафедрам — знаменатель F в расчёте долей</span></div>`;
+      <input class="txt refnum" id="cfg_students" inputmode="numeric" value="${CFG.students == null ? "" : CFG.students}" aria-label="Контингент обучающихся"></div>`;
 
   DEPTS.forEach(d => {
     const inp = document.getElementById("cfg_" + d.id);
