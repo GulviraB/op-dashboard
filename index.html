@@ -88,6 +88,16 @@ h1,h2,h3{font-family:"Golos Text","IBM Plex Sans",sans-serif; margin:0; text-wra
 .slegend{display:flex; flex-direction:column; gap:7px; padding:4px 11px 0}
 .slegend span{display:flex; gap:9px; align-items:flex-start; font-size:14px; color:var(--ink2); line-height:1.3}
 .slegend i{width:13px; height:13px; flex:0 0 13px; border-radius:3px; margin-top:3px}
+.sref{display:flex; flex-direction:column; gap:5px; padding:4px 11px 0}
+.srow{display:flex; gap:8px; align-items:center; justify-content:space-between;
+  font-size:14px; color:var(--ink2); line-height:1.3}
+.srow .lab{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.srow.total{margin-top:3px; padding:7px 9px; border-radius:7px;
+  background:var(--accent-soft); color:var(--accent); font-weight:700}
+.srow.total b{font-size:15.5px}
+.srow .note{font-size:12.5px; color:var(--muted); padding-top:2px; line-height:1.35; white-space:normal}
+input.refnum{width:66px; text-align:right; padding:5px 8px; font-family:"IBM Plex Mono",monospace;
+  font-size:14.5px; font-variant-numeric:tabular-nums; flex:0 0 66px}
 .sio{display:flex; flex-direction:column; gap:6px; padding:4px 11px 0}
 .sio .btn{width:100%; text-align:center}
 .side .savebadge{padding:14px 11px 0}
@@ -316,6 +326,9 @@ img{max-width:100%}
 
     <div class="sgroup">Кафедры</div>
     <div class="slegend" id="slegend"></div>
+
+    <div class="sgroup">Контингент</div>
+    <div class="sref" id="sref"></div>
 
     <div class="sgroup">Данные</div>
     <div class="sio">
@@ -584,17 +597,6 @@ function renderInst(){
     <div class="cell"><div class="k">Нет данных</div><div class="v nd">${t.nd}</div><div class="s">ни институт, ни кафедры</div></div>
   </div>`;
 
-  html += `<div class="refline">
-    <div class="refhead">Контингент <span>вносится вручную · используется как знаменатель F в расчёте долей</span></div>
-    <div class="refgrid">
-      ${DEPTS.map((d, di) => `<label class="refitem"><span><i style="background:var(--c${di + 1})"></i>${d.s}</span>
-        <input class="txt refnum" id="cfg_${d.id}" inputmode="numeric" value="${DEPT_STAFF[d.id] == null ? "" : DEPT_STAFF[d.id]}" aria-label="Штатных ППС: ${d.n}"></label>`).join("")}
-      <label class="refitem total"><span>Всего штатных ППС</span><b class="num" id="cfg_total">${staffTotal()}</b></label>
-      <label class="refitem"><span>Контингент обучающихся</span>
-        <input class="txt refnum" id="cfg_students" inputmode="numeric" value="${CFG.students == null ? "" : CFG.students}" aria-label="Контингент обучающихся"></label>
-    </div>
-  </div>`;
-
   // блоки
   html += `<section><div class="sec-head"><h2>Выполнение по направлениям</h2>
     <span class="sec-note">доля показателей направления в каждом статусе</span></div><div class="blocks">`;
@@ -663,23 +665,6 @@ function renderInst(){
   html += `</tbody></table></div></section>`;
   document.getElementById("view-inst").innerHTML = html;
   void about;
-
-  DEPTS.forEach(d => {
-    const el = document.getElementById("cfg_" + d.id);
-    if (!el) return;
-    el.addEventListener("input", () => {
-      const v = numOrNull(el.value.replace(",", ".").trim());
-      DEPT_STAFF[d.id] = v === null ? 0 : v;
-      const t = document.getElementById("cfg_total");
-      if (t) t.textContent = staffTotal();
-      saveCfg();
-    });
-  });
-  const stEl = document.getElementById("cfg_students");
-  if (stEl) stEl.addEventListener("input", () => {
-    CFG.students = numOrNull(stEl.value.replace(",", ".").trim());
-    saveCfg();
-  });
 }
 
 /* ================== РЕНДЕР: МАТРИЦА ================== */
@@ -1252,6 +1237,37 @@ function renderSideLegend(){
     `<span title="${d.n}"><i style="background:var(--c${di + 1})"></i>${d.s}</span>`).join("");
 }
 
+/* контингент: вносится вручную в боковой панели, служит знаменателем F */
+function renderSideCfg(){
+  const el = document.getElementById("sref");
+  if (!el) return;
+  el.innerHTML =
+    DEPTS.map(d => `<div class="srow"><span class="lab" title="${d.n}">${d.s}</span>
+      <input class="txt refnum" id="cfg_${d.id}" inputmode="numeric" value="${DEPT_STAFF[d.id] == null ? "" : DEPT_STAFF[d.id]}" aria-label="Штатных ППС: ${d.n}"></div>`).join("") +
+    `<div class="srow total"><span class="lab">Всего ППС</span><b class="num" id="cfg_total">${staffTotal()}</b></div>` +
+    `<div class="srow"><span class="lab">Обучающихся</span>
+      <input class="txt refnum" id="cfg_students" inputmode="numeric" value="${CFG.students == null ? "" : CFG.students}" aria-label="Контингент обучающихся"></div>` +
+    `<div class="srow"><span class="note">Штатные ППС по кафедрам — знаменатель F в расчёте долей</span></div>`;
+
+  DEPTS.forEach(d => {
+    const inp = document.getElementById("cfg_" + d.id);
+    if (!inp) return;
+    inp.addEventListener("input", () => {
+      const v = numOrNull(inp.value.replace(",", ".").trim());
+      DEPT_STAFF[d.id] = v === null ? 0 : v;
+      const t = document.getElementById("cfg_total");
+      if (t) t.textContent = staffTotal();
+      saveCfg();
+      render();
+    });
+  });
+  const stEl = document.getElementById("cfg_students");
+  if (stEl) stEl.addEventListener("input", () => {
+    CFG.students = numOrNull(stEl.value.replace(",", ".").trim());
+    saveCfg();
+  });
+}
+
 document.querySelectorAll(".tab").forEach(t => {
   t.addEventListener("click", () => {
     currentView = t.dataset.view;
@@ -1279,6 +1295,7 @@ try {
 } catch (e) {}
 
 renderSideLegend();
+renderSideCfg();
 document.getElementById("pdate").textContent = ruDate().replace(" г.", "");
 
 document.getElementById("btn-report").addEventListener("click", exportReport);
