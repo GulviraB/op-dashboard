@@ -1112,6 +1112,10 @@ function instNumer(ind){
 function gfOf(ind){
   const g = instNumer(ind), f = instDenom(ind);
   if (g !== null && f) return {g: g, f: f, src: "свод"};
+  /* кадровые показатели считаются только от контингента института:
+     сумма количеств, внесённых кафедрами, делится на общий штат ППС —
+     цифры мониторинга сюда не подставляются */
+  if (STAFF_IND.indexOf(ind.id) >= 0) return null;
   const mg = numOrNull(ind.g), mf = numOrNull(ind.f);
   if (mg !== null && mf) return {g: mg, f: mf, src: "мониторинг"};
   return null;
