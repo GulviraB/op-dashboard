@@ -347,9 +347,12 @@ function fmt(v, unit){
   if (unit === "pct") return String(Math.round(n)) + "%";
   return Math.abs(n % 1) > 0.0001 ? n.toFixed(1) : String(Math.round(n));
 }
-function pctOf(plan, fact){
+function pctOf(plan, fact, unit){
   if (fact === null || fact === undefined || fact === "" || !plan) return null;
-  return Math.min(100, Math.round((Number(fact)/Number(plan))*100));
+  let p = Number(plan), f = Number(fact);
+  if (unit === "pct"){ p = Math.round(p); f = Math.round(f); }
+  if (!p) return null;
+  return Math.min(100, Math.round((f / p) * 100));
 }
 
 /* агрегат по кафедрам для одного показателя */
@@ -490,13 +493,13 @@ function renderInst(){
     IND.filter(i => i.b === b.id).forEach(i => {
       const r = resolved(i);
       const st = statusOf(i.plan, r.val);
-      const pc = pctOf(i.plan, r.val);
+      const pc = pctOf(i.plan, r.val, i.u);
       const a = aggregate(i);
       html += `<tr>
         <td class="name"><span class="stripe ${st}"></span>${i.n} <span class="unit">(${i.um})</span></td>
         <td class="n">${fmt(i.plan, i.u)}</td>
         <td class="n" style="color:var(--muted)">${fmt(i.fact, i.u)}</td>
-        <td class="n" style="color:var(--${a.fact===null?'nd':'accent'})">${a.fact === null ? "—" : fmt(a.fact, i.u) + " <span style=\"color:var(--muted);font-size:12px\">/" + a.filled + " каф.</span>"}</td>
+        <td class="n" style="color:var(--${a.fact===null?'nd':'accent'})">${a.fact === null ? "—" : fmt(a.fact, i.u) + " <span style=\"color:var(--muted);font-size:12px\">" + (i.u === "pct" ? "сред. /" : "/") + a.filled + " каф.</span>"}</td>
         <td class="n" style="font-weight:600">${fmt(r.val, i.u)}${r.src === "кафедры" ? " <span style=\"color:var(--accent);font-size:11.5px\">каф.</span>" : ""}</td>
         <td class="n">${pc === null ? "—" : pc + "%"}</td>
         <td><span class="pill ${st}">${STATUS_LABEL[st]}</span></td>
@@ -799,12 +802,12 @@ function exportReport(){
       const r = resolved(i);
       const a = aggregate(i);
       const st = statusOf(i.plan, r.val);
-      const pc = pctOf(i.plan, r.val);
+      const pc = pctOf(i.plan, r.val, i.u);
       const links = DEPTS.map((d, di) => cellOf(d.id, i.id).docs ? (di + 1) : null).filter(x => x !== null);
       h += '<tr><td>' + esc(i.n) + ' <i>(' + esc(i.um) + ')</i></td>' +
            '<td class="c">' + fmt(i.plan, i.u) + '</td>' +
            '<td class="c">' + fmt(i.fact, i.u) + '</td>' +
-           '<td class="c">' + (a.fact === null ? "—" : fmt(a.fact, i.u) + " / " + a.filled + " каф.") + '</td>' +
+           '<td class="c">' + (a.fact === null ? "—" : fmt(a.fact, i.u) + (i.u === "pct" ? " сред. / " : " / ") + a.filled + " каф.") + '</td>' +
            '<td class="c"><b>' + fmt(r.val, i.u) + '</b>' + (r.src === "кафедры" ? " (каф.)" : "") + '</td>' +
            '<td class="c">' + (pc === null ? "—" : pc + "%") + '</td>' +
            '<td class="c">' + STATUS_LABEL[st] + '</td>' +
@@ -883,7 +886,7 @@ function exportSmart(){
       const r = resolved(i);
       const a = aggregate(i);
       const st = statusOf(i.plan, r.val);
-      const pc = pctOf(i.plan, r.val);
+      const pc = pctOf(i.plan, r.val, i.u);
       const ic = cellOf(INST.id, i.id);
       const calc = calcText(i) || i.note || "—";
       let doc = (ic.docs && ic.docs.trim()) ? ic.docs : "";
@@ -894,7 +897,7 @@ function exportSmart(){
       h += '<tr><td>' + esc(i.n) + ' <i>(' + esc(i.um) + ')</i></td>' +
            '<td class="c">' + fmt(i.plan, i.u) + '</td>' +
            '<td class="c">' + fmt(i.fact, i.u) + '</td>' +
-           '<td class="c">' + (a.fact === null ? "—" : fmt(a.fact, i.u) + " / " + a.filled + " каф.") + '</td>' +
+           '<td class="c">' + (a.fact === null ? "—" : fmt(a.fact, i.u) + (i.u === "pct" ? " сред. / " : " / ") + a.filled + " каф.") + '</td>' +
            '<td class="c"><b>' + fmt(r.val, i.u) + '</b>' + (r.src === "кафедры" ? " (каф.)" : "") + '</td>' +
            '<td class="c">' + (pc === null ? "—" : pc + "%") + '</td>' +
            '<td class="c">' + STATUS_LABEL[st] + '</td>' +
