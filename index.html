@@ -248,9 +248,19 @@ select:focus,input.txt:focus{outline:2px solid var(--accent); outline-offset:1px
 
 .foot{margin-top:34px; padding-top:16px; border-top:1px solid var(--line); color:var(--muted); font-size:13px}
 .hint{background:var(--accent-soft); color:var(--accent); border-radius:10px; padding:11px 15px; font-size:13.5px; margin-bottom:14px}
-.refline{margin:14px 0 0; padding:12px 16px; border:1px solid var(--line); border-radius:10px;
+.refline{margin:14px 0 0; padding:14px 16px; border:1px solid var(--line); border-radius:10px;
   background:var(--card); color:var(--ink2); font-size:14.5px; line-height:1.55}
 .refline b{color:var(--ink)}
+.refhead{font-family:"Golos Text",sans-serif; font-weight:700; font-size:15px; color:var(--ink); margin-bottom:10px}
+.refhead span{font-family:inherit; font-weight:400; font-size:13.5px; color:var(--muted); margin-left:8px}
+.refgrid{display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:8px}
+.refitem{display:flex; gap:10px; align-items:center; justify-content:space-between;
+  background:var(--surface); border:1px solid var(--line); border-radius:8px; padding:7px 10px}
+.refitem span{display:flex; gap:8px; align-items:center; font-size:14px}
+.refitem i{width:11px; height:11px; border-radius:3px; flex:0 0 11px}
+.refitem.total{background:var(--accent-soft); border-color:transparent; color:var(--accent); font-weight:600}
+input.refnum{width:78px; text-align:right; padding:5px 8px; font-family:"IBM Plex Mono",monospace;
+  font-size:14.5px; font-variant-numeric:tabular-nums}
 .about{background:var(--surface); border:1px solid var(--line); border-left:3px solid var(--accent); border-radius:12px;
   padding:16px 18px; margin-top:30px; box-shadow:var(--shadow)}
 .about h2{font-size:17px; margin-bottom:7px}
@@ -441,12 +451,36 @@ function pctOf(plan, fact, unit){
 
 /* агрегат по кафедрам для одного показателя */
 /* штатный контингент ППС по кафедрам на 2026 г. (данные института) */
-const DEPT_STAFF = {d1:23, d2:34, d3:25, d4:24, d5:28, d6:21};
+const DEPT_STAFF_DEFAULT = {d1:23, d2:34, d3:25, d4:24, d5:28, d6:21};
+const STUDENTS_DEFAULT = 3201;
+const CFG_KEY = "opplan-cfg";
+
+/* контингент вносится вручную на вкладке «Обзор института» и хранится в браузере */
+let CFG = {staff: Object.assign({}, DEPT_STAFF_DEFAULT), students: STUDENTS_DEFAULT};
+
+function loadCfg(){
+  try {
+    const raw = localStorage.getItem(CFG_KEY);
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    if (d && d.staff) Object.keys(DEPT_STAFF_DEFAULT).forEach(k => {
+      if (d.staff[k] !== undefined && d.staff[k] !== null) CFG.staff[k] = Number(d.staff[k]);
+    });
+    if (d && d.students !== undefined && d.students !== null) CFG.students = Number(d.students);
+  } catch (e) {}
+}
+
+function saveCfg(){
+  try { localStorage.setItem(CFG_KEY, JSON.stringify(CFG)); } catch (e) {}
+}
+
+loadCfg();
+
+const DEPT_STAFF = CFG.staff;
 /* показатели, знаменатель которых — штатный контингент ППС кафедры */
 const STAFF_IND = ["i05","i18","i19"];
-const STAFF_TOTAL = Object.keys(DEPT_STAFF).reduce((a,k) => a + DEPT_STAFF[k], 0);
-/* контингент обучающихся института на 2026 г. */
-const STUDENTS_TOTAL = 3201;
+function staffTotal(){ return DEPTS.reduce((a,d) => a + (Number(DEPT_STAFF[d.id]) || 0), 0); }
+/* контингент обучающихся института — см. CFG.students */
 
 /* знаменатель F: то, что кафедра вписала, иначе её штатный контингент */
 function denomOf(deptId, indId){
@@ -550,10 +584,16 @@ function renderInst(){
     <div class="cell"><div class="k">Нет данных</div><div class="v nd">${t.nd}</div><div class="s">ни институт, ни кафедры</div></div>
   </div>`;
 
-  html += `<div class="refline">Справочно: штатный контингент ППС — <b class="num">${STAFF_TOTAL}</b> чел.
-    (${DEPTS.map(d => d.s + " — " + DEPT_STAFF[d.id]).join("; ")}) ·
-    контингент обучающихся — <b class="num">${STUDENTS_TOTAL}</b> чел.
-    Эти числа используются как знаменатель F в расчёте долей.</div>`;
+  html += `<div class="refline">
+    <div class="refhead">Контингент <span>вносится вручную · используется как знаменатель F в расчёте долей</span></div>
+    <div class="refgrid">
+      ${DEPTS.map((d, di) => `<label class="refitem"><span><i style="background:var(--c${di + 1})"></i>${d.s}</span>
+        <input class="txt refnum" id="cfg_${d.id}" inputmode="numeric" value="${DEPT_STAFF[d.id] == null ? "" : DEPT_STAFF[d.id]}" aria-label="Штатных ППС: ${d.n}"></label>`).join("")}
+      <label class="refitem total"><span>Всего штатных ППС</span><b class="num" id="cfg_total">${staffTotal()}</b></label>
+      <label class="refitem"><span>Контингент обучающихся</span>
+        <input class="txt refnum" id="cfg_students" inputmode="numeric" value="${CFG.students == null ? "" : CFG.students}" aria-label="Контингент обучающихся"></label>
+    </div>
+  </div>`;
 
   // блоки
   html += `<section><div class="sec-head"><h2>Выполнение по направлениям</h2>
@@ -623,6 +663,23 @@ function renderInst(){
   html += `</tbody></table></div></section>`;
   document.getElementById("view-inst").innerHTML = html;
   void about;
+
+  DEPTS.forEach(d => {
+    const el = document.getElementById("cfg_" + d.id);
+    if (!el) return;
+    el.addEventListener("input", () => {
+      const v = numOrNull(el.value.replace(",", ".").trim());
+      DEPT_STAFF[d.id] = v === null ? 0 : v;
+      const t = document.getElementById("cfg_total");
+      if (t) t.textContent = staffTotal();
+      saveCfg();
+    });
+  });
+  const stEl = document.getElementById("cfg_students");
+  if (stEl) stEl.addEventListener("input", () => {
+    CFG.students = numOrNull(stEl.value.replace(",", ".").trim());
+    saveCfg();
+  });
 }
 
 /* ================== РЕНДЕР: МАТРИЦА ================== */
@@ -738,10 +795,10 @@ function renderEntry(){
         const g = (c.g === undefined || c.g === null) ? "" : c.g;
         const f = (c.f === undefined || c.f === null) ? "" : c.f;
         html += `<div class="entry-row inst" data-ind="${i.id}">
-          <div class="lbl">${i.n}<small>${i.um} · план ${fmt(i.plan, i.u)}${isPct ? " · G: " + L.num + " · F: " + L.den + (STAFF_IND.indexOf(i.id) >= 0 ? " (всего ППС — " + STAFF_TOTAL + ")" : "") : " · уточнённый факт " + fmt(resolved(i).val, i.u)}</small></div>`;
+          <div class="lbl">${i.n}<small>${i.um} · план ${fmt(i.plan, i.u)}${isPct ? " · G: " + L.num + " · F: " + L.den + (STAFF_IND.indexOf(i.id) >= 0 ? " (всего ППС — " + staffTotal() + ")" : "") : " · уточнённый факт " + fmt(resolved(i).val, i.u)}</small></div>`;
         html += isPct
           ? `<input class="txt numf" id="eg_${i.id}" inputmode="decimal" placeholder="${i.g == null ? "G" : i.g}" value="${g}" aria-label="Числитель G: ${L.num}" title="${L.num}">
-             <input class="txt numf" id="efd_${i.id}" inputmode="decimal" placeholder="${STAFF_IND.indexOf(i.id) >= 0 ? STAFF_TOTAL : (i.f == null ? "F" : i.f)}" value="${f}" aria-label="Знаменатель F: ${L.den}" title="${L.den}">`
+             <input class="txt numf" id="efd_${i.id}" inputmode="decimal" placeholder="${STAFF_IND.indexOf(i.id) >= 0 ? staffTotal() : (i.f == null ? "F" : i.f)}" value="${f}" aria-label="Знаменатель F: ${L.den}" title="${L.den}">`
           : `<span class="dash">—</span><span class="dash">—</span>`;
         html += `<div class="calcwrap">
             <div class="calcout" id="eo_${i.id}">${(calcText(i) || "—").replace(/&/g,"&amp;").replace(/</g,"&lt;")}</div>
@@ -963,7 +1020,7 @@ function exportReport(){
 
   h += '<h1>Выполнение оперативного плана за 1 полугодие 2026 года в разрезе кафедр</h1>';
   h += '<p class="sub">Институт цифровых наук и искусственного интеллекта · ' + esc(ruDate()) + '</p>';
-  h += '<p class="sub">Штатный контингент ППС — ' + STAFF_TOTAL + ' чел. · контингент обучающихся — ' + STUDENTS_TOTAL + ' чел.</p>';
+  h += '<p class="sub">Штатный контингент ППС — ' + staffTotal() + ' чел. · контингент обучающихся — ' + (CFG.students == null ? "—" : CFG.students) + ' чел.</p>';
 
   h += '<table><tr><th style="width:26%">Показатель</th><th>План</th><th>Факт мониторинга</th><th>Кафедры</th>' +
        '<th>Уточнённый факт</th><th>%</th><th>Статус</th><th>Документы</th><th style="width:22%">Комментарий</th></tr>';
@@ -1018,7 +1075,7 @@ function numOrNull(v){
 function instDenom(ind){
   const f = numOrNull(cellOf(INST.id, ind.id).f);
   if (f) return f;
-  if (STAFF_IND.indexOf(ind.id) >= 0) return STAFF_TOTAL;
+  if (STAFF_IND.indexOf(ind.id) >= 0) return staffTotal();
   const L = PCTL[ind.id];
   if (L && L.denFrom){
     const base = IND.find(x => x.id === L.denFrom);
@@ -1092,7 +1149,7 @@ function exportSmart(){
 
   h += '<h1>SMART ENU · Выполнение оперативного плана за 1 полугодие 2026 года</h1>';
   h += '<p class="sub">Институт цифровых наук и искусственного интеллекта · ' + esc(ruDate()) + '</p>';
-  h += '<p class="sub">Штатный контингент ППС — ' + STAFF_TOTAL + ' чел. · контингент обучающихся — ' + STUDENTS_TOTAL + ' чел.</p>';
+  h += '<p class="sub">Штатный контингент ППС — ' + staffTotal() + ' чел. · контингент обучающихся — ' + (CFG.students == null ? "—" : CFG.students) + ' чел.</p>';
 
   h += '<table><tr><th style="width:30%">Показатель</th><th style="width:8%">План</th>' +
        '<th style="width:40%">Результат</th>' +
