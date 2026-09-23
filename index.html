@@ -461,6 +461,40 @@ DEPTS.forEach(d => state[d.id] = {});
 state[INST.id] = {};
 let currentView = "inst";
 let onlyOverdue = false;
+
+/* имя вносящего: запоминается в браузере и уходит вместе с каждым сохранением */
+const AUTHOR_KEY = "opplan-author";
+let AUTHOR = "";
+try { AUTHOR = localStorage.getItem(AUTHOR_KEY) || ""; } catch (e) {}
+
+/* персональная ссылка кафедры: ?dept=d3 — открывается сразу её раздел */
+let LOCK_DEPT = "";
+try {
+  const q = new URLSearchParams(location.search).get("dept");
+  if (q && DEPTS.some(d => d.id === q)) LOCK_DEPT = q;
+} catch (e) {}
+
+function fmtStamp(iso){
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "";
+  const p = n => String(n).padStart(2, "0");
+  return p(d.getDate()) + "." + p(d.getMonth() + 1) + "." + d.getFullYear() +
+         " " + p(d.getHours()) + ":" + p(d.getMinutes());
+}
+
+/* кто и когда вносил по этому показателю — по всем кафедрам */
+function touchInfo(ind){
+  const parts = [];
+  let last = "";
+  DEPTS.forEach(d => {
+    const c = cellOf(d.id, ind.id);
+    if (!c.at) return;
+    if (c.at > last) last = c.at;
+    parts.push(d.s + " — " + (c.by ? c.by + ", " : "") + fmtStamp(c.at));
+  });
+  return {last: last, lines: parts};
+}
 let currentDept = DEPTS[0].id;
 const pendingTimers = {};
 
@@ -737,7 +771,7 @@ function renderInst(){
         <td class="name"><span class="stripe ${st}"></span>${i.n} <span class="unit">(${i.um})</span></td>
         <td class="n">${fmt(i.plan, i.u)}</td>
         <td class="n" style="color:var(--muted)">${fmt(i.fact, i.u)}</td>
-        <td class="n" style="color:var(--${a.fact===null?'nd':'accent'})">${a.fact === null ? "—" : fmt(a.fact, i.u) + " <span style=\"color:var(--muted);font-size:12px\">" + (i.u === "pct" ? "сред. /" : "/") + a.filled + " каф.</span>"}</td>
+        <td class="n" style="color:var(--${a.fact===null?'nd':'accent'})" title="${touchInfo(i).lines.join("\n").replace(/"/g,"&quot;")}">${a.fact === null ? "—" : fmt(a.fact, i.u) + " <span style=\"color:var(--muted);font-size:12px\">" + (i.u === "pct" ? "сред. /" : "/") + a.filled + " каф.</span>"}${touchInfo(i).last ? "<small style=\"display:block;color:var(--muted);font-size:12px;font-weight:400\">обновлено " + fmtStamp(touchInfo(i).last).slice(0,5) + "</small>" : ""}</td>
         <td class="n">${pc === null ? "—" : pc + "%"}</td>
         <td><span class="pill ${st}">${STATUS_LABEL[st]}</span>${isOverdue(i) ? ' <span class="pill over">Просрочено</span>' : ""}</td>
         <td class="respcell">${respOf(i) || "<span style=\"color:var(--nd)\">—</span>"}<small>${termName(cellOf(INST.id, i.id).term) || "срок не задан"}</small></td>
@@ -779,7 +813,8 @@ function hmTitle(ind, dept){
   return ind.n + "\n" + dept.n +
     "\nФакт: " + (c.fact === null || c.fact === undefined || c.fact === "" ? "нет данных" : fmt(c.fact, ind.u)) +
     "\nОриентир: " + fmt(plan, ind.u) +
-    "\nБалл: " + (sc === null ? "—" : sc);
+    "\nБалл: " + (sc === null ? "—" : sc) +
+    (c.at ? "\nВнёс: " + (c.by ? c.by + ", " : "") + fmtStamp(c.at) : "");
 }
 
 function renderMatrix(){
@@ -841,7 +876,11 @@ function renderEntry(){
 
   let html = `<div class="entry-head">
     <label for="deptsel" style="font-weight:600">Раздел</label>
-    <select id="deptsel">${opts.map(d => `<option value="${d.id}"${d.id === currentDept ? " selected" : ""}>${d.n}</option>`).join("")}</select>
+    ${LOCK_DEPT
+      ? `<b style="font-size:15.5px">${(DEPTS.find(d => d.id === LOCK_DEPT) || {}).n || ""}</b>`
+      : `<select id="deptsel">${opts.map(d => `<option value="${d.id}"${d.id === currentDept ? " selected" : ""}>${d.n}</option>`).join("")}</select>`}
+    <label for="authorbox" style="font-weight:600; margin-left:10px">Ваше имя</label>
+    <input class="txt" id="authorbox" style="width:210px" placeholder="фамилия и инициалы" value="${AUTHOR.replace(/"/g,"&quot;")}" aria-label="Кто вносит данные">
     <span style="color:var(--muted); font-size:13.5px">${isInst
       ? "колонка «Результат» собирается автоматически и попадает в отчёт SMART ENU"
       : `заполнено показателей: <b class="num">${p.counted}</b> из ${IND.length} · выполнено <b class="num">${p.done}</b>`}</span>
@@ -917,8 +956,15 @@ function renderEntry(){
   html += `</div>`;
   document.getElementById("view-entry").innerHTML = html;
 
-  document.getElementById("deptsel").addEventListener("change", e => {
+  const dsel = document.getElementById("deptsel");
+  if (dsel) dsel.addEventListener("change", e => {
     currentDept = e.target.value; renderEntry();
+  });
+
+  const abox = document.getElementById("authorbox");
+  if (abox) abox.addEventListener("input", () => {
+    AUTHOR = abox.value.trim();
+    try { localStorage.setItem(AUTHOR_KEY, AUTHOR); } catch (e) {}
   });
 
   IND.forEach(i => {
@@ -1014,7 +1060,7 @@ function persist(){
   const depts = {};
   ids.forEach(id => depts[id] = state[id] || {});
   fetch(API_URL, {method: "POST", headers: {"Content-Type": "text/plain;charset=utf-8"},
-                  body: JSON.stringify({action: "save", depts: depts})})
+                  body: JSON.stringify({action: "save", depts: depts, author: AUTHOR})})
     .then(r => r.json())
     .then(r => {
       if (r && r.ok){ dirty.clear(); setSaveState("on", "сохранено для всех"); }
@@ -1335,6 +1381,13 @@ function importJSON(file){
 }
 
 async function boot(){
+  if (LOCK_DEPT){
+    currentDept = LOCK_DEPT;
+    currentView = "entry";
+    document.querySelectorAll(".tab").forEach(x => x.setAttribute("aria-selected", String(x.dataset.view === "entry")));
+    ["inst","matrix","entry"].forEach(v => document.getElementById("view-" + v).hidden = (v !== "entry"));
+    setHead("entry");
+  }
   loadLocal();
   render();
   if (API_URL) setSaveState("on", "загрузка данных…");
