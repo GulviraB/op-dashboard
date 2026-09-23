@@ -843,8 +843,10 @@ function renderInst(){
   html += `</div></section>`;
 
   // прогресс заполнения по кафедрам
+  const subDone = DEPTS.filter(d => doneInfo(d.id)).length;
   html += `<section><div class="sec-head"><h2>Заполнение данных по кафедрам</h2>
-    <span class="sec-note">доля показателей со статусом «выполнено» среди заполненных</span></div>
+    <span class="sec-note">доля показателей со статусом «выполнено» среди заполненных ·
+      сдали данные <b class="num">${subDone}</b> из ${DEPTS.length} · наведите курсор на строку</span></div>
     <div class="panel" style="padding:18px 20px 14px"><div class="deptchart">`;
   const rows = DEPTS.map((d, di) => {
     const p = deptProgress(d.id);
@@ -855,30 +857,19 @@ function renderInst(){
   rows.forEach(r => {
     const w = r.val === null ? 0 : Math.max(r.val, 1.2);
     const txt = r.val === null ? "—" : r.val.toFixed(1).replace(".", ",");
-    html += `<div class="dc-lab" title="${r.d.n}">${r.d.s}</div>
-      <div class="dc-plot"><i class="dc-bar" style="width:${w}%; background:${r.col}"></i><b class="dc-val">${txt}</b></div>`;
+    const inf = doneInfo(r.d.id);
+    const tip = [
+      r.d.n,
+      "Заполнено: " + r.p.counted + " из " + IND.length + " показателей",
+      "Выполнено: " + r.p.done + (r.val === null ? "" : " (" + txt + "%)"),
+      inf ? "✓ Данные сданы " + inf.date + (inf.by ? " · " + inf.by : "") : "Данные ещё не сданы"
+    ].join("\n").replace(/"/g, "&quot;");
+    html += `<div class="dc-lab" title="${tip}">${r.d.s}</div>
+      <div class="dc-plot" title="${tip}"><i class="dc-bar" style="width:${w}%; background:${r.col}"></i><b class="dc-val">${txt}</b></div>`;
   });
   html += `</div>
     <div class="dc-axis"><span>0</span><span>20</span><span>40</span><span>60</span><span>80</span><span>100 %</span></div>
     </div></section>`;
-
-  // сдача данных кафедрами
-  const subs = DEPTS.map(d => ({d: d, info: doneInfo(d.id)}));
-  const subDone = subs.filter(x => x.info).length;
-  html += `<section><div class="sec-head"><h2>Сдача данных кафедрами</h2>
-    <span class="sec-note">сдали <b class="num">${subDone}</b> из ${DEPTS.length}</span></div>
-    <div class="panel" style="padding:6px 18px">`;
-  subs.forEach((x, di) => {
-    const pr = deptProgress(x.d.id);
-    html += `<div class="subrow">
-      <span><i class="dept-dot" style="background:var(--c${di + 1})"></i>${x.d.n}
-        <small style="color:var(--muted)"> · заполнено ${pr.counted} из ${IND.length}</small></span>
-      ${x.info
-        ? `<span class="st-yes">✓ сдано ${x.info.date}${x.info.by ? " · " + x.info.by : ""}</span>`
-        : `<span class="st-no">не сдано</span>`}
-    </div>`;
-  });
-  html += `</div></section>`;
 
   // таблица показателей института
   html += `<section><div class="sec-head"><h2>Показатели оперативного плана</h2></div>
