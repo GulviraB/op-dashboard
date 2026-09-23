@@ -880,23 +880,21 @@ function renderInst(){
     <div class="panel scroll"><table><thead><tr>
       <th>Показатель</th><th>План</th><th>Факт мониторинга</th>
       <th>Кафедры</th>
-      <th>%</th><th>Динамика</th><th>Статус</th><th>Ответственный и срок</th><th>Документы</th><th>Комментарий</th>
+      <th>Динамика</th><th>Статус</th><th>Ответственный и срок</th><th>Документы</th><th>Комментарий</th>
     </tr></thead><tbody>`;
   BLOCKS.forEach(b => {
     const shown = IND.filter(i => i.b === b.id && (!onlyOverdue || isOverdue(i)));
     if (!shown.length) return;
-    html += `<tr class="blockrow"><td colspan="10">${b.name}</td></tr>`;
+    html += `<tr class="blockrow"><td colspan="9">${b.name}</td></tr>`;
     shown.forEach(i => {
       const r = resolved(i);
       const st = statusOf(i.plan, r.val);
-      const pc = pctOf(i.plan, r.val, i.u);
       const a = aggregate(i);
       html += `<tr>
         <td class="name"><span class="stripe ${st}"></span>${i.n} <span class="unit">(${i.um})</span></td>
         <td class="n">${fmt(i.plan, i.u)}</td>
         <td class="n" style="color:var(--muted)">${fmt(i.fact, i.u)}</td>
         <td class="n" style="color:var(--${a.fact===null?'nd':'accent'})" title="${touchInfo(i).lines.join("\n").replace(/"/g,"&quot;")}">${a.fact === null ? "—" : fmt(a.fact, i.u) + " <span style=\"color:var(--muted);font-size:12px\">" + (i.u === "pct" ? "сред. /" : "/") + a.filled + " каф.</span>"}${touchInfo(i).last ? "<small style=\"display:block;color:var(--muted);font-size:12px;font-weight:400\">обновлено " + fmtStamp(touchInfo(i).last).slice(0,5) + "</small>" : ""}</td>
-        <td class="n">${pc === null ? "—" : pc + "%"}</td>
         <td title="${deltaTitle(i).replace(/"/g,"&quot;")}">${deltaHtml(i)}</td>
         <td><span class="pill ${st}">${STATUS_LABEL[st]}</span>${isOverdue(i) ? ' <span class="pill over">Просрочено</span>' : ""}</td>
         <td class="respcell">${respOf(i) || "<span style=\"color:var(--nd)\">—</span>"}<small>${termName(cellOf(INST.id, i.id).term) || "срок не задан"}</small></td>
