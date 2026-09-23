@@ -20,6 +20,7 @@
   --nd:#8a93a3; --nd-soft:#eceff4;
   --hm-ok:#1f9d55; --hm-warn:#eaa32a; --hm-low:#ef8a6f; --hm-zero:#d9453a; --hm-nd:#c7cdd6;
   --zone-low:#fdeeec; --zone-mid:#fdf5e6; --zone-ok:#e9f6ef;
+  --over:#8e2a22; --over-soft:#f7dcd9;
   --shadow:0 1px 2px rgba(20,24,33,.06), 0 8px 24px -16px rgba(20,24,33,.35);
 }
 @media (prefers-color-scheme: dark){
@@ -154,6 +155,12 @@ h1{font-size:23px; font-weight:700; letter-spacing:-.01em; line-height:1.2}
   margin-top:0; text-align:right; font-variant-numeric:tabular-nums}
 .cell .s{font-size:13px; color:var(--muted); margin-top:2px}
 .v.ok{color:var(--ok)} .v.warn{color:var(--warn)} .v.risk{color:var(--risk)} .v.nd{color:var(--nd)}
+.v.over{color:var(--over)}
+.pill.over{background:var(--over-soft); color:var(--over)}
+.respcell{font-size:14px; line-height:1.35}
+.respcell small{display:block; color:var(--muted); font-size:12.5px}
+.filterbar{display:flex; gap:14px; align-items:center; flex-wrap:wrap; font-size:14px; color:var(--ink2); margin-bottom:10px}
+.filterbar label{display:flex; gap:7px; align-items:center; cursor:pointer}
 
 section{margin-top:30px}
 .sec-head{display:flex; align-items:baseline; gap:12px; margin-bottom:12px; flex-wrap:wrap}
@@ -307,7 +314,9 @@ input.refnum{width:78px; text-align:right; padding:5px 8px; font-family:"IBM Ple
   font-size:13px; color:var(--muted)}
 .meta-line b{color:var(--ink2); font-weight:600}
 .banner{background:var(--warn-soft); color:var(--warn); border-radius:10px; padding:10px 14px; font-size:12.5px; margin-top:14px; font-weight:500}
-.entry-row.inst,.colhead.inst{grid-template-columns:minmax(190px,1fr) 80px 80px 2.2fr 1.1fr; align-items:start}
+.entry-row.inst,.colhead.inst{grid-template-columns:minmax(180px,1fr) 74px 74px 2fr 1fr 1.1fr; align-items:start}
+.respbox{display:flex; flex-direction:column; gap:5px}
+.respbox select.txt{padding:7px 8px}
 .entry-row.inst .dash{color:var(--nd); text-align:center; padding-top:8px}
 .calcwrap{display:grid; gap:5px}
 .calcout{white-space:pre-line; font-size:13.5px; line-height:1.45; background:var(--surface2);
@@ -451,6 +460,7 @@ const INST = {id:"inst", n:"Институт — расчёт и сводный 
 DEPTS.forEach(d => state[d.id] = {});
 state[INST.id] = {};
 let currentView = "inst";
+let onlyOverdue = false;
 let currentDept = DEPTS[0].id;
 const pendingTimers = {};
 
@@ -470,6 +480,36 @@ function statusOf(plan, fact){
   return "risk";
 }
 const STATUS_LABEL = {ok:"Выполнено", warn:"Частично", risk:"Риск", nd:"Нет данных"};
+
+/* отчётные периоды: срок считается по окончании периода */
+const TERMS = [
+  {v:"h1", n:"1 полугодие 2026", end:"2026-06-30"},
+  {v:"h2", n:"2 полугодие 2026", end:"2026-12-31"},
+  {v:"y",  n:"2026 год",         end:"2026-12-31"}
+];
+
+function termName(v){
+  const t = TERMS.find(x => x.v === v);
+  return t ? t.n : "";
+}
+
+function termEnd(v){
+  const t = TERMS.find(x => x.v === v);
+  return t ? new Date(t.end + "T23:59:59") : null;
+}
+
+/* просрочено: период закончился, а показатель не выполнен */
+function isOverdue(ind){
+  const c = cellOf(INST.id, ind.id);
+  const end = termEnd(c.term);
+  if (!end) return false;
+  if (end.getTime() >= Date.now()) return false;
+  return statusOf(ind.plan, resolved(ind).val) !== "ok";
+}
+
+function respOf(ind){
+  return (cellOf(INST.id, ind.id).resp || "").trim();
+}
 
 function fmt(v, unit){
   if (v === null || v === undefined || v === "") return "—";
@@ -563,8 +603,11 @@ function deptProgress(deptId){
 }
 
 function instTally(){
-  const t = {ok:0, warn:0, risk:0, nd:0};
-  IND.forEach(i => t[statusOf(i.plan, resolved(i).val)]++);
+  const t = {ok:0, warn:0, risk:0, nd:0, over:0};
+  IND.forEach(i => {
+    t[statusOf(i.plan, resolved(i).val)]++;
+    if (isOverdue(i)) t.over++;
+  });
   return t;
 }
 
@@ -619,6 +662,7 @@ function renderInst(){
     <div class="cell"><div class="k">Частично</div><div class="v warn">${t.warn}</div><div class="s">50–99% от плана</div></div>
     <div class="cell"><div class="k">Риск</div><div class="v risk">${t.risk}</div><div class="s">менее 50% от плана</div></div>
     <div class="cell"><div class="k">Нет данных</div><div class="v nd">${t.nd}</div><div class="s">ни институт, ни кафедры</div></div>
+    <div class="cell"><div class="k">Просрочено</div><div class="v over">${t.over}</div><div class="s">срок прошёл, не выполнено</div></div>
   </div>`;
 
   // блоки
@@ -661,14 +705,20 @@ function renderInst(){
 
   // таблица показателей института
   html += `<section><div class="sec-head"><h2>Показатели оперативного плана</h2></div>
+    <div class="filterbar">
+      <label><input type="checkbox" id="f-over"${onlyOverdue ? " checked" : ""}> только просроченные</label>
+      <span style="color:var(--muted)">просрочено: <b class="num" style="color:var(--over)">${t.over}</b> из ${total}</span>
+    </div>
     <div class="panel scroll"><table><thead><tr>
       <th>Показатель</th><th>План</th><th>Факт мониторинга</th>
       <th>Кафедры</th>
-      <th>%</th><th>Статус</th><th>Документы</th><th>Комментарий</th>
+      <th>%</th><th>Статус</th><th>Ответственный и срок</th><th>Документы</th><th>Комментарий</th>
     </tr></thead><tbody>`;
   BLOCKS.forEach(b => {
-    html += `<tr class="blockrow"><td colspan="8">${b.name}</td></tr>`;
-    IND.filter(i => i.b === b.id).forEach(i => {
+    const shown = IND.filter(i => i.b === b.id && (!onlyOverdue || isOverdue(i)));
+    if (!shown.length) return;
+    html += `<tr class="blockrow"><td colspan="9">${b.name}</td></tr>`;
+    shown.forEach(i => {
       const r = resolved(i);
       const st = statusOf(i.plan, r.val);
       const pc = pctOf(i.plan, r.val, i.u);
@@ -679,7 +729,8 @@ function renderInst(){
         <td class="n" style="color:var(--muted)">${fmt(i.fact, i.u)}</td>
         <td class="n" style="color:var(--${a.fact===null?'nd':'accent'})">${a.fact === null ? "—" : fmt(a.fact, i.u) + " <span style=\"color:var(--muted);font-size:12px\">" + (i.u === "pct" ? "сред. /" : "/") + a.filled + " каф.</span>"}</td>
         <td class="n">${pc === null ? "—" : pc + "%"}</td>
-        <td><span class="pill ${st}">${STATUS_LABEL[st]}</span></td>
+        <td><span class="pill ${st}">${STATUS_LABEL[st]}</span>${isOverdue(i) ? ' <span class="pill over">Просрочено</span>' : ""}</td>
+        <td class="respcell">${respOf(i) || "<span style=\"color:var(--nd)\">—</span>"}<small>${termName(cellOf(INST.id, i.id).term) || "срок не задан"}</small></td>
         <td>${DEPTS.map((d, di) => { const dc = cellOf(d.id, i.id); return dc.docs ? `<a class="doclink" style="background:var(--c${di + 1})" href="${dc.docs}" target="_blank" rel="noopener" title="${d.n}">${di + 1}</a>` : ""; }).join("") || "<span style=\"color:var(--nd)\">—</span>"}</td>
         <td style="color:var(--muted); font-size:14.5px">${i.note}</td>
       </tr>`;
@@ -688,6 +739,9 @@ function renderInst(){
   html += `</tbody></table></div></section>`;
   document.getElementById("view-inst").innerHTML = html;
   void about;
+
+  const fo = document.getElementById("f-over");
+  if (fo) fo.addEventListener("change", () => { onlyOverdue = fo.checked; renderInst(); });
 }
 
 /* ================== РЕНДЕР: МАТРИЦА ================== */
@@ -789,7 +843,7 @@ function renderEntry(){
 
   html += `<div class="panel">`;
   html += isInst
-    ? `<div class="colhead inst"><span>Показатель</span><span class="r">G</span><span class="r">F</span><span>Результат</span><span>Подтверждающий документ</span></div>`
+    ? `<div class="colhead inst"><span>Показатель</span><span class="r">G</span><span class="r">F</span><span>Результат</span><span>Подтверждающий документ</span><span>Ответственный и срок</span></div>`
     : `<div class="colhead"><span>Показатель</span><span class="r">План</span><span class="r">Факт · G / F</span><span class="r c4">Статус</span><span class="c5">Примечание и ссылка на документы</span></div>`;
 
   BLOCKS.forEach(b => {
@@ -816,6 +870,13 @@ function renderEntry(){
             </div>
           </div>
           <input class="txt" id="ei_${i.id}" placeholder="ссылка на сводную папку" value="${(c.docs || "").replace(/"/g,"&quot;")}" aria-label="Подтверждающий документ: ${i.n}">
+          <div class="respbox">
+            <input class="txt" id="er_${i.id}" placeholder="ответственный" value="${(c.resp || "").replace(/"/g,"&quot;")}" aria-label="Ответственный: ${i.n}">
+            <select class="txt" id="et_${i.id}" aria-label="Срок: ${i.n}">
+              <option value=""${c.term ? "" : " selected"}>срок не задан</option>
+              ${TERMS.map(t => `<option value="${t.v}"${c.term === t.v ? " selected" : ""}>${t.n}</option>`).join("")}
+            </select>
+          </div>
         </div>`;
         return;
       }
@@ -841,6 +902,7 @@ function renderEntry(){
         <div class="note">
           <input class="txt" id="en_${i.id}" placeholder="комментарий" value="${(c.note||"").replace(/"/g,"&quot;")}" aria-label="Комментарий: ${i.n}">
           <input class="txt" id="ed_${i.id}" placeholder="ссылка на подтверждающие документы (Google Диск)" value="${(c.docs||"").replace(/"/g,"&quot;")}" aria-label="Документы: ${i.n}">
+          <input class="txt" id="er_${i.id}" placeholder="исполнитель кафедры" value="${(c.resp||"").replace(/"/g,"&quot;")}" aria-label="Исполнитель кафедры: ${i.n}">
         </div>
       </div>`;
     });
@@ -862,6 +924,10 @@ function renderEntry(){
         if (ef) c.f = numOrNull(ef.value.replace(",", ".").trim());
         c.calc = document.getElementById("ec_" + i.id).value;
         c.docs = document.getElementById("ei_" + i.id).value.trim();
+        const rEl = document.getElementById("er_" + i.id);
+        const tEl = document.getElementById("et_" + i.id);
+        if (rEl) c.resp = rEl.value;
+        if (tEl) c.term = tEl.value;
         const out = document.getElementById("eo_" + i.id);
         out.textContent = calcText(i) || "—";
         queueSave(INST.id);
@@ -881,10 +947,12 @@ function renderEntry(){
           ta.remove(); done(ok);
         }
       });
-      ["eg_","efd_","ec_","ei_"].forEach(pre => {
+      ["eg_","efd_","ec_","ei_","er_"].forEach(pre => {
         const el = document.getElementById(pre + i.id);
         if (el) el.addEventListener("input", refreshInst);
       });
+      const tSel = document.getElementById("et_" + i.id);
+      if (tSel) tSel.addEventListener("change", refreshInst);
       return;
     }
     const refresh = () => {
@@ -905,12 +973,14 @@ function renderEntry(){
       }
       c.note = document.getElementById("en_" + i.id).value;
       c.docs = document.getElementById("ed_" + i.id).value.trim();
+      const drEl = document.getElementById("er_" + i.id);
+      if (drEl) c.resp = drEl.value;
       const st = statusOf(c.plan === null ? i.plan : c.plan, c.fact);
       const badge = document.getElementById("es_" + i.id);
       badge.className = "pill " + st; badge.textContent = STATUS_LABEL[st];
       queueSave(currentDept);
     };
-    ["ep_","ef_","eg_","efd_","en_","ed_"].forEach(pre => {
+    ["ep_","ef_","eg_","efd_","en_","ed_","er_"].forEach(pre => {
       const el = document.getElementById(pre + i.id);
       if (el) el.addEventListener("input", refresh);
     });
@@ -1034,7 +1104,7 @@ function exportReport(){
   h += '<p class="sub">Институт цифровых наук и искусственного интеллекта · ' + esc(ruDate()) + '</p>';
   h += '<p class="sub">Штатный контингент ППС — ' + staffTotal() + ' чел. · контингент обучающихся — ' + (CFG.students == null ? "—" : CFG.students) + ' чел.</p>';
 
-  h += '<table><tr><th style="width:26%">Показатель</th><th>План</th><th>Факт мониторинга</th><th>Кафедры</th>' +
+  h += '<table><tr><th style="width:24%">Показатель</th><th>План</th><th>Факт мониторинга</th><th>Кафедры</th>' +
        '<th>Уточнённый факт</th><th>%</th><th>Статус</th><th>Документы</th><th style="width:22%">Комментарий</th></tr>';
   BLOCKS.forEach(b => {
     const list = IND.filter(i => i.b === b.id);
@@ -1058,6 +1128,22 @@ function exportReport(){
     });
   });
   h += '</table>';
+
+  var over = IND.filter(isOverdue);
+  if (over.length){
+    h += '<h2 style="font-size:12pt; margin:16pt 0 6pt">Просроченные показатели</h2>';
+    h += '<table><tr><th style="width:44%">Показатель</th><th>План</th><th>Факт</th>' +
+         '<th>Ответственный</th><th>Срок</th></tr>';
+    over.forEach(function (i) {
+      var r = resolved(i);
+      h += '<tr><td>' + esc(i.n) + '</td>' +
+           '<td class="c">' + fmt(i.plan, i.u) + '</td>' +
+           '<td class="c">' + fmt(r.val, i.u) + '</td>' +
+           '<td>' + esc(respOf(i) || "не назначен") + '</td>' +
+           '<td class="c">' + esc(termName(cellOf(INST.id, i.id).term)) + '</td></tr>';
+    });
+    h += '</table>';
+  }
 
   h += '<p style="margin-top:16pt; font-size:9pt">Нумерация кафедр в колонке «Документы»: ' +
        DEPTS.map((d, di) => (di + 1) + " — " + esc(d.n)).join('; ') + '.</p>';
@@ -1172,12 +1258,13 @@ function exportSmart(){
 
   h += '<table><tr><th style="width:30%">Показатель</th><th style="width:8%">План</th>' +
        '<th style="width:40%">Результат</th>' +
-       '<th style="width:22%">Подтверждающий документ</th></tr>';
+       '<th style="width:18%">Подтверждающий документ</th>' +
+       '<th style="width:12%">Ответственный и срок</th></tr>';
 
   BLOCKS.forEach(b => {
     const list = IND.filter(i => i.b === b.id);
     if (!list.length) return;
-    h += '<tr class="blk"><td colspan="4">' + esc(b.name) + '</td></tr>';
+    h += '<tr class="blk"><td colspan="5">' + esc(b.name) + '</td></tr>';
     list.forEach(i => {
       const ic = cellOf(INST.id, i.id);
       const calc = calcText(i) ||
@@ -1191,7 +1278,9 @@ function exportSmart(){
       h += '<tr><td>' + esc(i.n) + ' <i>(' + esc(i.um) + ')</i></td>' +
            '<td class="c">' + fmt(i.plan, i.u) + '</td>' +
            '<td>' + esc(calc).replace(/\n/g, "<br>") + '</td>' +
-           '<td>' + (doc ? '<a href="' + esc(doc) + '">' + esc(doc) + '</a>' : "—") + '</td></tr>';
+           '<td>' + (doc ? '<a href="' + esc(doc) + '">' + esc(doc) + '</a>' : "—") + '</td>' +
+           '<td>' + esc(respOf(i) || "—") + '<br><span style="font-size:8pt">' +
+             esc(termName(cellOf(INST.id, i.id).term) || "срок не задан") + '</span></td></tr>';
     });
   });
   h += '</table>';
