@@ -157,6 +157,10 @@ h1{font-size:23px; font-weight:700; letter-spacing:-.01em; line-height:1.2}
 .v.ok{color:var(--ok)} .v.warn{color:var(--warn)} .v.risk{color:var(--risk)} .v.nd{color:var(--nd)}
 .v.over{color:var(--over)}
 .pill.over{background:var(--over-soft); color:var(--over)}
+.dl{font-family:"IBM Plex Mono",monospace; font-size:14px; font-weight:600; white-space:nowrap}
+.dl.up{color:var(--ok)} .dl.down{color:var(--risk)} .dl.same{color:var(--muted); font-weight:400}
+.freezebox{display:flex; flex-direction:column; gap:6px; padding:0 4px}
+.freezebox .hintline{font-size:12.5px; color:var(--muted); line-height:1.35}
 .respcell{font-size:14px; line-height:1.35}
 .respcell small{display:block; color:var(--muted); font-size:12.5px}
 .filterbar{display:flex; gap:14px; align-items:center; flex-wrap:wrap; font-size:14px; color:var(--ink2); margin-bottom:10px}
@@ -365,6 +369,13 @@ img{max-width:100%}
     <div class="sgroup">Контингент</div>
     <div class="sref sbox" id="sref"></div>
 
+    <div class="sgroup">Прошлый период</div>
+    <div class="sbox freezebox">
+      <input class="txt" id="prevlabel" placeholder="например, 1 полугодие 2026" aria-label="Название прошлого периода">
+      <button class="btn" id="btn-freeze" type="button">Зафиксировать</button>
+      <div class="hintline" id="previnfo"></div>
+    </div>
+
     <div class="sgroup">Данные</div>
     <div class="sio sbox">
       <button class="btn" id="btn-export" type="button">Выгрузить</button>
@@ -555,6 +566,65 @@ function respOf(ind){
   return (cellOf(INST.id, ind.id).resp || "").trim();
 }
 
+/* ---- динамика к зафиксированному прошлому периоду ---- */
+
+/* зафиксировать текущие значения как прошлый период */
+function freezePeriod(label){
+  DEPTS.forEach(d => IND.forEach(i => {
+    const c = cellOf(d.id, i.id);
+    const v = numOrNull(c.fact);
+    if (v !== null) c.pv = v;
+    dirty.add(d.id);
+  }));
+  IND.forEach(i => {
+    const c = cellOf(INST.id, i.id);
+    const v = resolved(i).val;
+    if (v !== null && v !== undefined) c.pv = Number(v);
+  });
+  dirty.add(INST.id);
+  CFG.prevLabel = String(label || "").trim();
+  CFG.prevAt = new Date().toISOString();
+  saveCfg();
+  queueSave();
+}
+
+/* изменение показателя института: было → стало */
+function deltaOf(ind){
+  const pv = numOrNull(cellOf(INST.id, ind.id).pv);
+  const now = resolved(ind).val;
+  if (pv === null || now === null || now === undefined) return null;
+  const cur = Number(now);
+  return {prev: pv, now: cur, diff: cur - pv};
+}
+
+function deltaHtml(ind){
+  const d = deltaOf(ind);
+  if (!d) return '<span style="color:var(--nd)">—</span>';
+  const eps = ind.u === "pct" ? 0.5 : 0.001;
+  if (Math.abs(d.diff) < eps)
+    return '<span class="dl same">= без изменений</span>';
+  const up = d.diff > 0;
+  const sign = up ? "▲ +" : "▼ −";
+  return '<span class="dl ' + (up ? "up" : "down") + '">' + sign +
+         fmt(Math.abs(d.diff), ind.u) + '</span>';
+}
+
+/* динамика простым текстом — для выгрузок в Word */
+function deltaText(ind){
+  const d = deltaOf(ind);
+  if (!d) return "—";
+  const eps = ind.u === "pct" ? 0.5 : 0.001;
+  if (Math.abs(d.diff) < eps) return "без изменений";
+  return (d.diff > 0 ? "+" : "−") + fmt(Math.abs(d.diff), ind.u);
+}
+
+function deltaTitle(ind){
+  const d = deltaOf(ind);
+  if (!d) return "прошлый период не зафиксирован";
+  return (CFG.prevLabel || "прошлый период") + ": " + fmt(d.prev, ind.u) +
+         " → сейчас: " + fmt(d.now, ind.u);
+}
+
 function fmt(v, unit){
   if (v === null || v === undefined || v === "") return "—";
   const n = Number(v);
@@ -577,7 +647,8 @@ const STUDENTS_DEFAULT = 3201;
 const CFG_KEY = "opplan-cfg";
 
 /* контингент вносится вручную на вкладке «Обзор института» и хранится в браузере */
-let CFG = {staff: Object.assign({}, DEPT_STAFF_DEFAULT), students: STUDENTS_DEFAULT};
+let CFG = {staff: Object.assign({}, DEPT_STAFF_DEFAULT), students: STUDENTS_DEFAULT,
+           prevLabel: "", prevAt: ""};
 
 function loadCfg(){
   try {
@@ -588,6 +659,8 @@ function loadCfg(){
       if (d.staff[k] !== undefined && d.staff[k] !== null) CFG.staff[k] = Number(d.staff[k]);
     });
     if (d && d.students !== undefined && d.students !== null) CFG.students = Number(d.students);
+    if (d && d.prevLabel) CFG.prevLabel = String(d.prevLabel);
+    if (d && d.prevAt) CFG.prevAt = String(d.prevAt);
   } catch (e) {}
 }
 
@@ -756,12 +829,12 @@ function renderInst(){
     <div class="panel scroll"><table><thead><tr>
       <th>Показатель</th><th>План</th><th>Факт мониторинга</th>
       <th>Кафедры</th>
-      <th>%</th><th>Статус</th><th>Ответственный и срок</th><th>Документы</th><th>Комментарий</th>
+      <th>%</th><th>Динамика</th><th>Статус</th><th>Ответственный и срок</th><th>Документы</th><th>Комментарий</th>
     </tr></thead><tbody>`;
   BLOCKS.forEach(b => {
     const shown = IND.filter(i => i.b === b.id && (!onlyOverdue || isOverdue(i)));
     if (!shown.length) return;
-    html += `<tr class="blockrow"><td colspan="9">${b.name}</td></tr>`;
+    html += `<tr class="blockrow"><td colspan="10">${b.name}</td></tr>`;
     shown.forEach(i => {
       const r = resolved(i);
       const st = statusOf(i.plan, r.val);
@@ -773,6 +846,7 @@ function renderInst(){
         <td class="n" style="color:var(--muted)">${fmt(i.fact, i.u)}</td>
         <td class="n" style="color:var(--${a.fact===null?'nd':'accent'})" title="${touchInfo(i).lines.join("\n").replace(/"/g,"&quot;")}">${a.fact === null ? "—" : fmt(a.fact, i.u) + " <span style=\"color:var(--muted);font-size:12px\">" + (i.u === "pct" ? "сред. /" : "/") + a.filled + " каф.</span>"}${touchInfo(i).last ? "<small style=\"display:block;color:var(--muted);font-size:12px;font-weight:400\">обновлено " + fmtStamp(touchInfo(i).last).slice(0,5) + "</small>" : ""}</td>
         <td class="n">${pc === null ? "—" : pc + "%"}</td>
+        <td title="${deltaTitle(i).replace(/"/g,"&quot;")}">${deltaHtml(i)}</td>
         <td><span class="pill ${st}">${STATUS_LABEL[st]}</span>${isOverdue(i) ? ' <span class="pill over">Просрочено</span>' : ""}</td>
         <td class="respcell">${respOf(i) || "<span style=\"color:var(--nd)\">—</span>"}<small>${termName(cellOf(INST.id, i.id).term) || "срок не задан"}</small></td>
         <td>${DEPTS.map((d, di) => { const dc = cellOf(d.id, i.id); return dc.docs ? `<a class="doclink" style="background:var(--c${di + 1})" href="${dc.docs}" target="_blank" rel="noopener" title="${d.n}">${di + 1}</a>` : ""; }).join("") || "<span style=\"color:var(--nd)\">—</span>"}</td>
@@ -1159,13 +1233,15 @@ function exportReport(){
   h += '<h1>Выполнение оперативного плана за 1 полугодие 2026 года в разрезе кафедр</h1>';
   h += '<p class="sub">Институт цифровых наук и искусственного интеллекта · ' + esc(ruDate()) + '</p>';
   h += '<p class="sub">Штатный контингент ППС — ' + staffTotal() + ' чел. · контингент обучающихся — ' + (CFG.students == null ? "—" : CFG.students) + ' чел.</p>';
+  if (CFG.prevLabel || CFG.prevAt)
+    h += '<p class="sub">Динамика приведена в сравнении с периодом: ' + esc(CFG.prevLabel || "предыдущий снимок") + '</p>';
 
   h += '<table><tr><th style="width:24%">Показатель</th><th>План</th><th>Факт мониторинга</th><th>Кафедры</th>' +
-       '<th>Уточнённый факт</th><th>%</th><th>Статус</th><th>Документы</th><th style="width:22%">Комментарий</th></tr>';
+       '<th>Уточнённый факт</th><th>%</th><th>Динамика</th><th>Статус</th><th>Документы</th><th style="width:20%">Комментарий</th></tr>';
   BLOCKS.forEach(b => {
     const list = IND.filter(i => i.b === b.id);
     if (!list.length) return;
-    h += '<tr class="blk"><td colspan="9">' + esc(b.name) + '</td></tr>';
+    h += '<tr class="blk"><td colspan="10">' + esc(b.name) + '</td></tr>';
     list.forEach(i => {
       const r = resolved(i);
       const a = aggregate(i);
@@ -1178,6 +1254,7 @@ function exportReport(){
            '<td class="c">' + (a.fact === null ? "—" : fmt(a.fact, i.u) + (i.u === "pct" ? " сред. / " : " / ") + a.filled + " каф.") + '</td>' +
            '<td class="c"><b>' + fmt(r.val, i.u) + '</b>' + (r.src === "кафедры" ? " (каф.)" : "") + '</td>' +
            '<td class="c">' + (pc === null ? "—" : pc + "%") + '</td>' +
+           '<td class="c">' + esc(deltaText(i)) + '</td>' +
            '<td class="c">' + STATUS_LABEL[st] + '</td>' +
            '<td class="c">' + (links.length ? "каф. " + links.join(", ") : "—") + '</td>' +
            '<td>' + esc(i.note) + '</td></tr>';
@@ -1311,6 +1388,8 @@ function exportSmart(){
   h += '<h1>SMART ENU · Выполнение оперативного плана за 1 полугодие 2026 года</h1>';
   h += '<p class="sub">Институт цифровых наук и искусственного интеллекта · ' + esc(ruDate()) + '</p>';
   h += '<p class="sub">Штатный контингент ППС — ' + staffTotal() + ' чел. · контингент обучающихся — ' + (CFG.students == null ? "—" : CFG.students) + ' чел.</p>';
+  if (CFG.prevLabel || CFG.prevAt)
+    h += '<p class="sub">Динамика приведена в сравнении с периодом: ' + esc(CFG.prevLabel || "предыдущий снимок") + '</p>';
 
   h += '<table><tr><th style="width:30%">Показатель</th><th style="width:8%">План</th>' +
        '<th style="width:40%">Результат</th>' +
@@ -1468,6 +1547,30 @@ document.querySelectorAll(".tab").forEach(t => {
 
 renderSideLegend();
 renderSideCfg();
+
+function renderPrevInfo(){
+  const el = document.getElementById("previnfo");
+  if (!el) return;
+  el.textContent = CFG.prevAt
+    ? "зафиксировано: " + (CFG.prevLabel || "без названия") + " · " + fmtStamp(CFG.prevAt)
+    : "снимок ещё не сделан — динамика появится после фиксации";
+  const lab = document.getElementById("prevlabel");
+  if (lab && !lab.value) lab.value = CFG.prevLabel || "";
+}
+
+renderPrevInfo();
+
+const fbtn = document.getElementById("btn-freeze");
+if (fbtn) fbtn.addEventListener("click", () => {
+  const lab = document.getElementById("prevlabel");
+  const name = lab ? lab.value.trim() : "";
+  if (!confirm("Зафиксировать текущие значения как прошлый период" +
+               (name ? " «" + name + "»" : "") +
+               "?\n\nПрежний снимок будет заменён.")) return;
+  freezePeriod(name);
+  renderPrevInfo();
+  render();
+});
 document.getElementById("pdate").textContent = ruDate().replace(" г.", "");
 
 document.getElementById("btn-report").addEventListener("click", exportReport);
