@@ -157,6 +157,18 @@ h1{font-size:23px; font-weight:700; letter-spacing:-.01em; line-height:1.2}
 .v.ok{color:var(--ok)} .v.warn{color:var(--warn)} .v.risk{color:var(--risk)} .v.nd{color:var(--nd)}
 .v.over{color:var(--over)}
 .pill.over{background:var(--over-soft); color:var(--over)}
+.donebar{display:flex; gap:14px; align-items:center; flex-wrap:wrap; margin-bottom:12px;
+  padding:12px 16px; border-radius:10px; border:1px solid var(--line); background:var(--surface);
+  font-size:14.5px; color:var(--ink2); line-height:1.4}
+.donebar.is-done{background:var(--ok-soft); border-color:transparent; color:var(--ok)}
+.donebar b{color:inherit}
+.donebar .dmark{font-size:19px; font-weight:700}
+.donebar button{margin-left:auto}
+.subrow{display:grid; grid-template-columns:minmax(150px,1fr) auto; gap:10px 16px; align-items:center;
+  font-size:15px; padding:9px 4px; border-bottom:1px solid var(--line)}
+.subrow:last-child{border-bottom:0}
+.subrow .st-yes{color:var(--ok); font-weight:600; white-space:nowrap}
+.subrow .st-no{color:var(--nd); white-space:nowrap}
 .dl{font-family:"IBM Plex Mono",monospace; font-size:14px; font-weight:600; white-space:nowrap}
 .dl.up{color:var(--ok)} .dl.down{color:var(--risk)} .dl.same{color:var(--muted); font-weight:400}
 .freezebox{display:flex; flex-direction:column; gap:6px; padding:0 4px}
@@ -566,6 +578,33 @@ function respOf(ind){
   return (cellOf(INST.id, ind.id).resp || "").trim();
 }
 
+/* ---- отметка кафедры «данные внесены» ---- */
+
+const DONE_KEY = "_done";
+
+function dmy(iso){
+  if (!iso) return "";
+  const p = String(iso).slice(0, 10).split("-");
+  return p.length === 3 ? p[2] + "." + p[1] + "." + p[0] : "";
+}
+
+function doneInfo(deptId){
+  const c = cellOf(deptId, DONE_KEY);
+  return c && c.term ? {date: dmy(c.term), by: (c.resp || "").trim()} : null;
+}
+
+function markDone(deptId, on){
+  const c = cellOf(deptId, DONE_KEY);
+  if (on){
+    c.term = new Date().toISOString().slice(0, 10);
+    c.resp = AUTHOR || "";
+    c.note = "Данные внесены";
+  } else {
+    c.term = ""; c.resp = ""; c.note = "";
+  }
+  queueSave(deptId);
+}
+
 /* ---- динамика к зафиксированному прошлому периоду ---- */
 
 /* зафиксировать текущие значения как прошлый период */
@@ -823,6 +862,24 @@ function renderInst(){
     <div class="dc-axis"><span>0</span><span>20</span><span>40</span><span>60</span><span>80</span><span>100 %</span></div>
     </div></section>`;
 
+  // сдача данных кафедрами
+  const subs = DEPTS.map(d => ({d: d, info: doneInfo(d.id)}));
+  const subDone = subs.filter(x => x.info).length;
+  html += `<section><div class="sec-head"><h2>Сдача данных кафедрами</h2>
+    <span class="sec-note">сдали <b class="num">${subDone}</b> из ${DEPTS.length}</span></div>
+    <div class="panel" style="padding:6px 18px">`;
+  subs.forEach((x, di) => {
+    const pr = deptProgress(x.d.id);
+    html += `<div class="subrow">
+      <span><i class="dept-dot" style="background:var(--c${di + 1})"></i>${x.d.n}
+        <small style="color:var(--muted)"> · заполнено ${pr.counted} из ${IND.length}</small></span>
+      ${x.info
+        ? `<span class="st-yes">✓ сдано ${x.info.date}${x.info.by ? " · " + x.info.by : ""}</span>`
+        : `<span class="st-no">не сдано</span>`}
+    </div>`;
+  });
+  html += `</div></section>`;
+
   // таблица показателей института
   html += `<section><div class="sec-head"><h2>Показатели оперативного плана</h2></div>
     <div class="filterbar">
@@ -965,7 +1022,8 @@ function renderEntry(){
 
   html += isInst
     ? `<div class="hint">Для показателей в процентах впишите числитель <b>G</b> и знаменатель <b>F</b> — расчёт соберётся сам в виде «Штатных ППС, вовлечённых в НИР - 54 чел. / Всего штатных ППС - 157 чел. / H = G ÷ F × 100 = 54 ÷ 157 × 100 = 34,4%». Для количественных показателей расчёт подставляется из уточнённого факта, при необходимости перепишите его вручную.</div>`
-    : `<div class="hint">План кафедры можно оставить пустым — тогда статус считается от планового значения института. Для показателей в процентах вносите два числа: <b>G</b> — числитель (например, штатных ППС, вовлечённых в НИР) и <b>F</b> — знаменатель (всего штатных ППС). Доля посчитается сама, а по институту сложатся числители и знаменатели, а не средний процент. Штатный контингент кафедры уже подставлен в F — впишите своё число, только если оно изменилось.</div>`;
+    : `<div class="donebar" id="donebar"></div>
+       <div class="hint">План кафедры можно оставить пустым — тогда статус считается от планового значения института. Для показателей в процентах вносите два числа: <b>G</b> — числитель (например, штатных ППС, вовлечённых в НИР) и <b>F</b> — знаменатель (всего штатных ППС). Доля посчитается сама, а по институту сложатся числители и знаменатели, а не средний процент. Штатный контингент кафедры уже подставлен в F — впишите своё число, только если оно изменилось.</div>`;
 
   html += `<div class="panel">`;
   html += isInst
@@ -1037,6 +1095,39 @@ function renderEntry(){
   if (dsel) dsel.addEventListener("change", e => {
     currentDept = e.target.value; renderEntry();
   });
+
+  function renderDoneBar(){
+    const box = document.getElementById("donebar");
+    if (!box) return;
+    const info = doneInfo(currentDept);
+    const pr = deptProgress(currentDept);
+    box.className = "donebar" + (info ? " is-done" : "");
+    box.innerHTML = info
+      ? `<span class="dmark">✓</span><span>Данные внесены <b>${info.date}</b>${info.by ? " · " + info.by : ""}</span>
+         <button class="btn mini" type="button" id="btn-undone">Отменить отметку</button>`
+      : `<span>Заполнено <b class="num">${pr.counted}</b> из ${IND.length} показателей.
+         Когда всё внесено — нажмите кнопку, чтобы институт видел, что кафедра сдала данные.</span>
+         <button class="btn btn-main" type="button" id="btn-done">Готово — данные внесены</button>`;
+
+    const bd = document.getElementById("btn-done");
+    if (bd) bd.addEventListener("click", () => {
+      if (!AUTHOR){
+        const ab = document.getElementById("authorbox");
+        if (ab) ab.focus();
+        alert("Сначала впишите своё имя в поле «Ваше имя» вверху — оно попадёт в отметку о сдаче.");
+        return;
+      }
+      markDone(currentDept, true);
+      renderDoneBar();
+    });
+    const bu = document.getElementById("btn-undone");
+    if (bu) bu.addEventListener("click", () => {
+      if (!confirm("Снять отметку о сдаче данных?")) return;
+      markDone(currentDept, false);
+      renderDoneBar();
+    });
+  }
+  renderDoneBar();
 
   const abox = document.getElementById("authorbox");
   if (abox) abox.addEventListener("input", () => {
