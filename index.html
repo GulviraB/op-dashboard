@@ -488,12 +488,22 @@ const TERMS = [
   {v:"y",  n:"2026 год",         end:"2026-12-31"}
 ];
 
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+/* срок — конкретная дата (2026-12-31) либо, для старых записей, код периода */
 function termName(v){
+  if (!v) return "";
+  if (ISO_DATE.test(v)){
+    const p = v.split("-");
+    return "до " + p[2] + "." + p[1] + "." + p[0];
+  }
   const t = TERMS.find(x => x.v === v);
   return t ? t.n : "";
 }
 
 function termEnd(v){
+  if (!v) return null;
+  if (ISO_DATE.test(v)) return new Date(v + "T23:59:59");
   const t = TERMS.find(x => x.v === v);
   return t ? new Date(t.end + "T23:59:59") : null;
 }
@@ -872,10 +882,7 @@ function renderEntry(){
           <input class="txt" id="ei_${i.id}" placeholder="ссылка на сводную папку" value="${(c.docs || "").replace(/"/g,"&quot;")}" aria-label="Подтверждающий документ: ${i.n}">
           <div class="respbox">
             <input class="txt" id="er_${i.id}" placeholder="ответственный" value="${(c.resp || "").replace(/"/g,"&quot;")}" aria-label="Ответственный: ${i.n}">
-            <select class="txt" id="et_${i.id}" aria-label="Срок: ${i.n}">
-              <option value=""${c.term ? "" : " selected"}>срок не задан</option>
-              ${TERMS.map(t => `<option value="${t.v}"${c.term === t.v ? " selected" : ""}>${t.n}</option>`).join("")}
-            </select>
+            <input class="txt" type="date" id="et_${i.id}" value="${ISO_DATE.test(c.term || "") ? c.term : ""}" aria-label="Срок: ${i.n}" title="Срок исполнения">
           </div>
         </div>`;
         return;
@@ -952,7 +959,10 @@ function renderEntry(){
         if (el) el.addEventListener("input", refreshInst);
       });
       const tSel = document.getElementById("et_" + i.id);
-      if (tSel) tSel.addEventListener("change", refreshInst);
+      if (tSel){
+        tSel.addEventListener("change", refreshInst);
+        tSel.addEventListener("input", refreshInst);
+      }
       return;
     }
     const refresh = () => {
